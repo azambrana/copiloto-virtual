@@ -1,0 +1,15 @@
+zona-escolar
+pare
+paso-peatonal
+ceda-el-paso
+limite-velocidad-10
+limite-velocidad-20
+limite-velocidad-30
+limite-velocidad-40
+limite-velocidad-35
+prohibido-girar-izquierda
+semaforo-rojo
+prohibido-girar-u
+semaforo-inteligente-rojo
+prohibido-girar-derecha
+pare-horizontal
