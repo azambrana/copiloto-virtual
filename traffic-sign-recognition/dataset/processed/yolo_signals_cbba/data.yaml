@@ -1,0 +1,21 @@
+path: C:\\Users\\Alvaro\\PycharmProjects\\copilotoVirtual\\dataset\\yolo_signals_cbba\
+train: ../train/images
+val: ../val/images
+test: ../test/images
+names:
+  0: zona-escolar 
+  1: pare 
+  2: paso-peatonal 
+  3: ceda-el-paso 
+  4: limite-velocidad-10 
+  5: limite-velocidad-20 
+  6: limite-velocidad-30 
+  7: limite-velocidad-40 
+  8: limite-velocidad-35 
+  9: prohibido-girar-izquierda 
+  10: semaforo-rojo 
+  11: prohibido-girar-u 
+  12: semaforo-inteligente-rojo 
+  13: prohibido-girar-derecha 
+  14: pare-horizontal 
+
