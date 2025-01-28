@@ -1,0 +1,1 @@
+Desarrollo de un copiloto virtual para la asistencia de conductores basado en visión artificial y edge AI en android
