@@ -1,3 +1,27 @@
+"""
+Script en Python para realizar tareas de inferencia en un mapa personalizado utilizando el API del simulador CARLA utilizando el modelo YOLOv8.
+El mapa ha sido personalizado con señales de tráfico para realizar la detección de objetos.
+El objetivo de este script es realizar la inferencia automatizados de objetos en un entorno simulado utilizando el simulador CARLA y modelos de YOLO.
+
+El script realiza las siguientes tareas:
+
+1. Carga un modelo YOLOv8 pre-entrenado.
+2. Carga un mapa personalizado en el simulador CARLA.
+3. Carga un vehículo en el mapa.
+4. Carga una cámara RGB en el vehículo.
+5. Realiza la inferencia de objetos en cada frame de la cámara RGB.
+6. Dibuja los objetos detectados en el frame de la cámara RGB.
+7. Guarda el frame de la cámara RGB con los objetos detectados.
+8. Muestra la velocidad, ubicación y FPS del vehículo en la pantalla.
+9. Muestra la fecha y hora actual en la pantalla.
+10. Muestra un mensaje de autoría en la pantalla.
+
+Código fuente adaptado de https://github.com/carla-simulator/carla/tree/0.9.15.2/PythonAPI/examples
+
+author: Alvaro Zambrana Sejas
+email: azambrana777@gmail.com
+
+"""
 import datetime
 
 import carla
@@ -7,7 +31,6 @@ import random
 import os
 import cv2
 from ultralytics import YOLO
-from PIL import Image, ImageDraw, ImageFont
 import faulthandler
 import torch
 
@@ -28,7 +51,7 @@ vehicle = None
 captured_image = None
 watermark_image_path = 'assets/direccion_posgrado_fcyt2.png'
 
-model = YOLO("../yolo/cbba_yolov8_model.pt")  # Load YOLOv8 model Copiloto Virtual
+model = YOLO("../object-detection-models/cbba_yolov8_model.pt")  # Load YOLOv8 model Copiloto Virtual
 model.to('cuda')
 
 text_color = (255, 255, 255)
@@ -52,9 +75,7 @@ def process_img(image):
     # Convert CARLA image to numpy array
     array = np.frombuffer(image.raw_data, dtype=np.uint8)
     array = array.reshape((image.height, image.width, 4))[:, :, :3]  # Remove alpha channel
-    # frame = image
     frame = cv2.cvtColor(array, cv2.COLOR_BGR2RGB)  # Convert to RGB for YOLO
-    # frame = cv2.cvtColor(array, cv2)  # Convert to RGB for YOLO
 
     if frames % 3 == 0:
         # Run YOLOv8 detection
@@ -252,9 +273,6 @@ def add_image_watermark(frame, watermark_image_path, position=(500, 10), alpha=0
     # Blend the watermark with the ROI
     for c in range(3):  # Loop over RGB channels
        roi[:, :, c] = (1 - watermark_alpha) * roi[:, :, c] + watermark_alpha * watermark_rgb[:, :, c]
-
-    # Get the region of interest (ROI) from the frame where the watermark will be placed
-    # roi = frame[y:y + h_wm, x:x + w_wm]
 
     # Replace the ROI on the frame
     frame[y:y+h_wm, x:x+w_wm] = roi
