@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,18 +28,20 @@ import com.copilotovirtual.Constants.LABELS_PATH
 import com.copilotovirtual.Constants.MODEL_PATH
 import com.copilotovirtual.Detector
 import com.copilotovirtual.databinding.FragmentCameraBinding
+import com.copilotovirtual.model.LocationState
+import com.copilotovirtual.model.SpeedLimitState
+import com.copilotovirtual.model.SpeedState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileWriter
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import com.copilotovirtual.utils.CSVLogger
+import com.copilotovirtual.utils.SoundPlayer
 
-
+/**
+ * Fragmento que muestra la cámara y detecta objetos en tiempo real.
+ */
 class CameraFragment : Fragment(), Detector.DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
@@ -56,6 +57,8 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     private val firstTimestamp = System.currentTimeMillis()
     private var previousClassName = ""
     private var previousTimestamp = 0L
+    private lateinit var csvLogger: CSVLogger
+    private lateinit var soundPlayer: SoundPlayer
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
@@ -82,6 +85,8 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         } else {
             ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
+
+        soundPlayer = SoundPlayer(requireContext())
 
         createCSVFile()
     }
@@ -177,6 +182,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         super.onDestroy()
         detector?.close()
         cameraExecutor.shutdown()
+        soundPlayer.release()
     }
 
     override fun onResume() {
@@ -216,39 +222,19 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
 
                 if (best != null) {
                     if (currentTimestamp - previousTimestamp > 9000) {
-                        if (shouldSound(best.cnf)) {
+                        if (acceptableConfidence(best.cnf)) {
                             previousClassName = best.clsName
                             previousTimestamp = currentTimestamp
-                            playSound(requireContext(), best.clsName)
+                            // playSound(requireContext(), best.clsName)
+                            soundPlayer.playSound(best.clsName)
                             toast("Detectado: ${best.clsName} [${best.cnf}]")
                         }
                     }
                 }
-                logDetectedBoundingBoxes(boundingBoxes, currentTimestamp, best, inferenceTime)
+                logBestDetectedBoundingBoxes(boundingBoxes, currentTimestamp, best, inferenceTime)
             }
         }
     }
-
-    fun playSound(context: Context, clsName: String) {
-        val fileName = "${clsName}.wav"
-        if (mediaPlayer.isPlaying) {
-            return
-        }
-        try {
-            mediaPlayer.reset()
-            val afd = context.assets.openFd(fileName)
-            mediaPlayer.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-            afd.close()
-            mediaPlayer.prepare()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        mediaPlayer.isLooping = false
-        mediaPlayer.start()
-        toast("Sonido: $fileName")
-    }
-
 
     private fun toast(message: String) {
         lifecycleScope.launch(Dispatchers.Main) {
@@ -256,48 +242,44 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         }
     }
 
-    // Create CSV file and write headers if it doesn't exist
+    /**
+     * Crea un archivo CSV para almacenar los datos de las detecciones.
+     */
     private fun createCSVFile() {
-        try {
-            val file = getCSVFile()
-            if (!file.exists()) {
-                file.createNewFile()
-                val fileWriter = FileWriter(file, true)
-                fileWriter.append("timestamp,clase,probabilidad,sound,inferenceTime\n")
-                fileWriter.flush()
-                fileWriter.close()
-            }
-        } catch (e: IOException) {
-            Log.e("CSVError", "Error creating CSV file", e)
-        }
+        csvLogger = CSVLogger(
+            context = requireContext(),
+            firstTimestamp = System.currentTimeMillis(),
+            headers =  "timestamp,latitud,longitud,velocidad,clase,probabilidad,sonido,tiempoInferencia",
+            suffix = "yolo_data"
+        )
     }
 
-    private fun logDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
+    /**
+     * Registra los datos de las detecciones en el archivo CSV.
+     */
+    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
         try {
-            val file = getCSVFile()
-            val fileWriter = FileWriter(file, true)
-
             for (bbox in boundingBoxes) {
                 val timestamp = System.currentTimeMillis()
-                val sound = if (shouldSound(bbox.cnf)) "1" else "0"
-                fileWriter.append("${timestamp},${bbox.clsName},${bbox.cnf},${sound},${inferenceTime}\n")
-            }
+                var isAcceptable = acceptableConfidence(bbox.cnf)
+                val sound = if (isAcceptable) "1" else "0"
+                val clsName = bbox.clsName
 
-            fileWriter.flush()
-            fileWriter.close()
+                if (isAcceptable && clsName.startsWith("limite-velocidad-")) {
+                    SpeedLimitState.currentSpeedLimit = clsName.substringAfter("limite-velocidad-").toFloat()
+                }
+
+                csvLogger.logRowData(timestamp, LocationState.latitude, LocationState.longitude, SpeedState.currentSpeed, clsName, bbox.cnf, sound, inferenceTime)
+            }
         } catch (e: IOException) {
             Log.e("CSVError", "Error writing to CSV file", e)
         }
     }
 
-    private fun shouldSound(cnf: Float): Boolean {
+    /**
+     * Verifica si la confianza de la detección es aceptable.
+     */
+    private fun acceptableConfidence(cnf: Float): Boolean {
         return cnf >= 0.7
     }
-
-    private fun getCSVFile(): File {
-        val folder = getActivity()?.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-        val timestampString = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date(firstTimestamp))
-        return File(folder, "${timestampString}_yolo_data.csv")
-    }
-
 }

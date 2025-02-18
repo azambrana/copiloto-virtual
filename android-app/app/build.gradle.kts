@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.copilotovirtual"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.copilotovirtual"
@@ -28,16 +28,17 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
 
     buildFeatures {
         viewBinding = true
     }
+    buildToolsVersion = "35.0.0"
 }
 
 //noinspection UseTomlInstead
@@ -57,7 +58,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
 
-    val cameraxVersion = "1.4.0-beta02"
+    val cameraxVersion = "1.4.1"
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")

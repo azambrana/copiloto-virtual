@@ -18,11 +18,8 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
 /**
- * Clase Detector para realizar la detección de objetos en un frame de video
- * @author Alvaro Zambrana Sejas
+ * Clase Detector para realizar la detección de objetos en un frame de video utilizando un modelo de TensorFlow Lite y GPU
  */
-
-
 class Detector(
     private val context: Context,
     private val modelPath: String,
@@ -89,6 +86,9 @@ class Detector(
         }
     }
 
+    /**
+     * Reinicia el modelo del detector con la configuración de GPU o CPU
+     */
     fun restart(isGpu: Boolean) {
         interpreter.close()
 
@@ -116,6 +116,9 @@ class Detector(
         interpreter.close()
     }
 
+    /**
+     * Realiza la detección de objetos en un frame de video
+     */
     fun detect(frame: Bitmap) {
         if (tensorWidth == 0
             || tensorHeight == 0
@@ -147,6 +150,9 @@ class Detector(
         detectorListener.onDetect(bestBoxes, inferenceTime)
     }
 
+    /**
+     * Obtiene las mejores bounding boxes de la salida del modelo
+     */
     private fun bestBox(array: FloatArray) : List<BoundingBox>? {
 
         val boundingBoxes = mutableListOf<BoundingBox>()
@@ -195,6 +201,9 @@ class Detector(
         return applyNMS(boundingBoxes)
     }
 
+    /**
+     * Aplica el algoritmo de Non-Maximum Suppression para eliminar bounding boxes duplicados
+     */
     private fun applyNMS(boxes: List<BoundingBox>) : MutableList<BoundingBox> {
         val sortedBoxes = boxes.sortedByDescending { it.cnf }.toMutableList()
         val selectedBoxes = mutableListOf<BoundingBox>()
@@ -217,6 +226,9 @@ class Detector(
         return selectedBoxes
     }
 
+    /**
+     * Calcula la intersección sobre unión entre dos bounding boxes
+     */
     private fun calculateIoU(box1: BoundingBox, box2: BoundingBox): Float {
         val x1 = maxOf(box1.x1, box2.x1)
         val y1 = maxOf(box1.y1, box2.y1)
@@ -238,7 +250,7 @@ class Detector(
         private const val INPUT_STANDARD_DEVIATION = 255f
         private val INPUT_IMAGE_TYPE = DataType.FLOAT32
         private val OUTPUT_IMAGE_TYPE = DataType.FLOAT32
-        private const val CONFIDENCE_THRESHOLD = 0.3F
+        private const val CONFIDENCE_THRESHOLD = 0.5F
         private const val IOU_THRESHOLD = 0.5F
     }
 }
