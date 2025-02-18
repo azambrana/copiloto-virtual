@@ -1,7 +1,6 @@
 package com.copilotovirtual.ui
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -26,7 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import com.copilotovirtual.model.BoundingBox
 import com.copilotovirtual.Constants.LABELS_PATH
 import com.copilotovirtual.Constants.MODEL_PATH
-import com.copilotovirtual.Detector
+import com.copilotovirtual.YOLOv8Detector
 import com.copilotovirtual.databinding.FragmentCameraBinding
 import com.copilotovirtual.model.LocationState
 import com.copilotovirtual.model.SpeedLimitState
@@ -42,7 +41,7 @@ import com.copilotovirtual.utils.SoundPlayer
 /**
  * Fragmento que muestra la cámara y detecta objetos en tiempo real.
  */
-class CameraFragment : Fragment(), Detector.DetectorListener {
+class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -51,7 +50,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var detector: Detector? = null
+    private var YOLOv8Detector: YOLOv8Detector? = null
     private lateinit var cameraExecutor: ExecutorService
     private val mediaPlayer = MediaPlayer()
     private val firstTimestamp = System.currentTimeMillis()
@@ -75,7 +74,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
-            detector = Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
+            YOLOv8Detector = YOLOv8Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
                 toast(it)
             }
         }
@@ -149,7 +148,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
                 matrix, true
             )
 
-            detector?.detect(rotatedBitmap)
+            YOLOv8Detector?.detect(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -180,7 +179,7 @@ class CameraFragment : Fragment(), Detector.DetectorListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        detector?.close()
+        YOLOv8Detector?.close()
         cameraExecutor.shutdown()
         soundPlayer.release()
     }

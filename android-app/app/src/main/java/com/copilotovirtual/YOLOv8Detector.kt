@@ -20,7 +20,7 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 /**
  * Clase Detector para realizar la detección de objetos en un frame de video utilizando un modelo de TensorFlow Lite y GPU
  */
-class Detector(
+class YOLOv8Detector(
     private val context: Context,
     private val modelPath: String,
     private val labelPath: String?,
