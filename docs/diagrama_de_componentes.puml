@@ -1,0 +1,28 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Diagrama de componentes del Copiloto Virtual
+
+System_Ext(gps, "GPS")
+
+Container_Boundary(mobile_app, "Mobile App") {
+    Component(iu, "Interfaz de Usuario", "Fragment", "Interfaz de usuario principal")
+    Component(cam, "Camera API", "API", "Captura secuencia de imágenes")
+    Component(isa, "Asistente de velocidad inteligente", "Object", "Evalúa la velocidad actual contra las señales de tránsito detectadas")
+    Component(tsr, "Detector de señales de tránsito", "Object", "Detecta señales de tránsito en la secuencia de imágenes capturadas con la cámara")
+    Component(tflite, "TensorFlow Interpreter", "Object", "Interpretador de TensorFlow para realizar inferencia que carga el modelo en formato .tflite entrenado con YOLO")
+    Component(gpsApi, "GPS API", "HTTPS", "API para obtener datos del GPS")
+    Component(logger, "FileWriter", "API", "API para almacenar registros CSV")
+    
+    Rel(iu, cam, "Capturar imágenes", "")
+    Rel(gps, gpsApi, "Obtener Datos GPS", "GPS")
+    Rel(iu, tsr, "Obtener Señales de Tránsito")
+    Rel(tsr, tflite, "Obtener Resultados de Inferencia")
+    Rel(tsr, logger, "Registrar Resultados de Inferencia")
+    Rel(iu, isa, "Evaluar Velocidad")
+    Rel(isa, logger, "Registrar Eventos")
+    Rel(iu, gpsApi, "Registrar Datos GPS")
+
+@enduml

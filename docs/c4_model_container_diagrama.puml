@@ -1,0 +1,14 @@
+@startuml Basic Sample
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(driver, "Driver")
+System_Boundary(c1, "Copiloto Virtual v0.1") {
+    Container(mobile_app, "Mobile App", "Java, Kotlin, Android SDK, TensorFlow Lite", "Copiloto Virtual: Asistente al conductor con funciones TSR e ISA")
+}
+
+System(gps, "GPS")
+
+Rel(driver, mobile_app, "Utiliza", "Interacciona")
+Rel(mobile_app, gps, "Obtener datos GPS", "GPS")
+
+@enduml

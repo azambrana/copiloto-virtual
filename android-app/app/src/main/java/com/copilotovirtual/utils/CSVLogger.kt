@@ -63,7 +63,7 @@ class CSVLogger(
     private fun writeHeaders() {
         try {
             FileWriter(csvFile, true).use { writer ->
-                writer.append(headers).append("\n") // ✅ Use custom headers
+                writer.append(headers).append("\n")
                 writer.flush()
             }
         } catch (e: IOException) {
@@ -78,7 +78,7 @@ class CSVLogger(
     fun logRowData(vararg data: Any) {
         try {
             FileWriter(csvFile, true).use { writer ->
-                writer.append(data.joinToString(",")).append("\n") // ✅ Log dynamic data
+                writer.append(data.joinToString(",")).append("\n")
                 writer.flush()
             }
             Log.d("CSVLogger", "Logged Data: ${data.joinToString(",")}")

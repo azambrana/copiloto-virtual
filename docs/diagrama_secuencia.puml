@@ -1,0 +1,76 @@
+@startuml
+
+actor Usuario
+
+participant "Interfaz de Usuario" as IU
+activate IU
+participant "API Cámara" as Camara
+activate Camara
+Usuario -> IU : "Iniciar app"
+
+box Detector Señales de Tránsito (TSR)
+    participant "Detector" as detector
+    activate detector
+    participant "TensorFlow Interpreter" as YOLO
+    detector --> YOLO: << create >> (.tflite, opts)
+    activate YOLO
+end box
+
+activate GPS
+activate SpeedLimitState
+
+participant "MediaPlayer" as mediaPlayer
+activate mediaPlayer
+participant "CSVLogger" as logs
+activate logs
+
+box Asistente de Velocidad Inteligente (ISA)
+    participant "API GPS" as GPSManager
+    participant "SpeedLimitState" as SpeedLimitState
+
+    IU -> GPS: Leer Velocidad Actual
+    loop "async"
+        GPS -> GPS: Actualizar Velocidad y Ubicacion
+        GPS -> SpeedState: actualizar(velocidadActual)
+        GPS -> LocationState:  actualizar(latitude, longitude)
+    end
+end box
+
+
+IU -> Camara : Solicita imagen
+Camara -> IU : Devuelve imagen capturada
+IU -> detector: detect(bitmap)
+detector-> YOLO : run(input, output)
+YOLO --> detector: boundingBoxes
+detector -> detector: bestBoxes(boundingBoxes)
+detector --> IU : resultados de inferencia
+
+IU -> GPS : Solicita ubicación
+GPS -> IU : coordenadas GPS
+IU -> GPS : Obtener velocidad
+GPS --> IU : velocidad
+IU -> SpeedLimitState: actualizar velocidad actual
+
+alt Inferencia aceptable
+    IU -> mediaPlayer: Reproducir sonido
+    IU -> logs: Escribir registro
+    note right logs: "CSV:timestamp,latitud,longitud,velocidad,clase,probabilidad,sonido,tiempoInferencia"
+
+    alt Señal detectada es Límite de velocidad 
+         note over IU: velocidad límite actual = Velocidad detectada de la señal
+    else Señal detectada es Zona Escolar
+         note over IU: velocidad límite actual = 10 km/h
+    end    
+end
+
+IU -> MainActivity: evaluar(velocidad límite actual)
+ 
+MainActivity--> IU: resultado
+
+alt Exceso de velocidad
+    IU -> mediaPlayer: Reproducir sonido de alerta
+end
+
+IU -> Usuario : Muestra resultados de inferencia en pantalla
+
+@enduml
