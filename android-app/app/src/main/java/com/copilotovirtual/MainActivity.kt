@@ -81,16 +81,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun startAsyncLoop() {
         isLoopRunning = true
+        var speedLimitExceeded = false
+        var distanceLimitExceeded = 0f
         coroutineScope.launch {
             while (isLoopRunning) {
-                // 🔹 Código que se ejecuta cada X segundos
-                println("Ejecución en el loop: ${System.currentTimeMillis()}")
-                Log.d("Loop", "Ejecución en el loop: ${System.currentTimeMillis()}, Speed: ${SpeedState.currentSpeed}, SpeedLimit: ${SpeedLimitState.currentSpeedLimit}, Distance: ${DistanceState.totalDistance}")
+                Log.d("Loop", "Timestamp: ${System.currentTimeMillis()}, Speed: ${SpeedState.currentSpeed}, SpeedLimit: ${SpeedLimitState.currentSpeedLimit}, Distance: ${DistanceState.totalDistance}")
 
-                if (SpeedLimitState.currentSpeedLimit > 0 && SpeedState.currentSpeed > SpeedLimitState.currentSpeedLimit) {
-                    toast("Exceso de velocidad: ${SpeedState.currentSpeed} km/h, Límite: ${SpeedLimitState.currentSpeedLimit}")
-                    Log.d("Loop", "Exceso de velocidad: ${SpeedState.currentSpeed} km/h, Límite: ${SpeedLimitState.currentSpeedLimit}")
+                if (!speedLimitExceeded && SpeedLimitState.currentSpeedLimit > 0 && SpeedState.currentSpeed > SpeedLimitState.currentSpeedLimit) {
+                    speedLimitExceeded = true
+                    distanceLimitExceeded = DistanceState.totalDistance
+                    val message = "Exceso de velocidad: ${SpeedState.currentSpeed} km/h, Límite: ${SpeedLimitState.currentSpeedLimit} km/h"
+                    toast(message)
+                    Log.d("Loop", message)
+
                     soundPlayer.playSound("exceso-velocidad")
+
+                    // reset speed limit
+                    SpeedLimitState.currentSpeedLimit = 40f
+                }
+
+                // mantener el límite dentro de los siguientes 100 metros
+                if (speedLimitExceeded && DistanceState.totalDistance - distanceLimitExceeded > 100) {
+                    speedLimitExceeded = false
                 }
 
                 delay(loopInterval)
