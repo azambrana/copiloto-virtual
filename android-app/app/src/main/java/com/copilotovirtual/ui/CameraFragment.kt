@@ -224,7 +224,6 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
                         if (acceptableConfidence(best.cnf)) {
                             previousClassName = best.clsName
                             previousTimestamp = currentTimestamp
-                            // playSound(requireContext(), best.clsName)
                             soundPlayer.playSound(best.clsName)
                             toast("Detectado: ${best.clsName} [${best.cnf}]")
                         }
@@ -266,6 +265,8 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
 
                 if (isAcceptable && clsName.startsWith("limite-velocidad-")) {
                     SpeedLimitState.currentSpeedLimit = clsName.substringAfter("limite-velocidad-").toFloat()
+                } else if (isAcceptable && clsName.startsWith("zona-escolar")) {
+                    SpeedLimitState.currentSpeedLimit = 10f
                 }
 
                 csvLogger.logRowData(timestamp, LocationState.latitude, LocationState.longitude, SpeedState.currentSpeed, clsName, bbox.cnf, sound, inferenceTime)
