@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
         lastLocation = location
 
         SpeedState.currentSpeed = speed
-        DistanceState.totalDistance = DistanceState.totalDistance + totalDistance
+        DistanceState.totalDistance += distance
         LocationState.latitude = latitude
         LocationState.longitude = longitude
 
