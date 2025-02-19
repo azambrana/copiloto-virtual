@@ -9,12 +9,12 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
-import com.copilotovirtual.model.BoundingBox
 import com.copilotovirtual.R
+import com.copilotovirtual.model.BoundingBoxYOLOv10
 
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
-    private var results = listOf<BoundingBox>()
+    private var results = listOf<BoundingBoxYOLOv10>()
     private var boxPaint = Paint()
     private var textBackgroundPaint = Paint()
     private var textPaint = Paint()
@@ -78,7 +78,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         }
     }
 
-    fun setResults(boundingBoxes: List<BoundingBox>) {
+    fun setResults(boundingBoxes: List<BoundingBoxYOLOv10>) {
         results = boundingBoxes
         invalidate()
     }

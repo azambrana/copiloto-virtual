@@ -22,11 +22,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.copilotovirtual.model.BoundingBox
 import com.copilotovirtual.Constants.LABELS_PATH
-import com.copilotovirtual.Constants.MODEL_PATH
-import com.copilotovirtual.YOLOv8Detector
+import com.copilotovirtual.Constants.MODEL_PATH_YOLOv10
+import com.copilotovirtual.YOLOv10Detector
 import com.copilotovirtual.databinding.FragmentCameraBinding
+import com.copilotovirtual.model.BoundingBoxYOLOv10
 import com.copilotovirtual.model.LocationState
 import com.copilotovirtual.model.SpeedLimitState
 import com.copilotovirtual.model.SpeedState
@@ -41,7 +41,7 @@ import com.copilotovirtual.utils.SoundPlayer
 /**
  * Fragmento que muestra la cámara y detecta objetos en tiempo real.
  */
-class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
+class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -50,7 +50,7 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var YOLOv8Detector: YOLOv8Detector? = null
+    private var YOLOv10Detector: YOLOv10Detector? = null
     private lateinit var cameraExecutor: ExecutorService
     private val mediaPlayer = MediaPlayer()
     private val firstTimestamp = System.currentTimeMillis()
@@ -74,7 +74,7 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
-            YOLOv8Detector = YOLOv8Detector(requireContext(), MODEL_PATH, LABELS_PATH, this) {
+            YOLOv10Detector = YOLOv10Detector(requireContext(), MODEL_PATH_YOLOv10, LABELS_PATH, this) {
                 toast(it)
             }
         }
@@ -148,7 +148,7 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
                 matrix, true
             )
 
-            YOLOv8Detector?.detect(rotatedBitmap)
+            YOLOv10Detector?.detect(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -179,7 +179,7 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        YOLOv8Detector?.close()
+        YOLOv10Detector?.close()
         cameraExecutor.shutdown()
         soundPlayer.release()
     }
@@ -207,7 +207,8 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
         }
     }
 
-    override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
+
+    override fun onDetect(boundingBoxes: List<BoundingBoxYOLOv10>, inferenceTime: Long) {
         val currentTimestamp = System.currentTimeMillis()
         requireActivity().runOnUiThread {
             binding.overlay.apply {
@@ -255,7 +256,7 @@ class CameraFragment : Fragment(), YOLOv8Detector.DetectorListener {
     /**
      * Registra los datos de las detecciones en el archivo CSV.
      */
-    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
+    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBoxYOLOv10>, timestamp: Long, best: BoundingBoxYOLOv10?, inferenceTime: Long) {
         try {
             for (bbox in boundingBoxes) {
                 val timestamp = System.currentTimeMillis()

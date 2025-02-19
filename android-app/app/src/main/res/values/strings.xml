@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Copiloto Virtual v0.3</string>
+    <string name="app_name">Copiloto Virtual v0.4 (YOLOv10)</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="gpu">GPU</string>
     <string name="gpu_acceleration">GPU Acceleration</string>
