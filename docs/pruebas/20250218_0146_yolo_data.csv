@@ -1,0 +1,6 @@
+timestamp,latitud,longitud,velocidad,clase,probabilidad,sonido,tiempoInferencia
+1739857611654,0.0,0.0,4.208371,prohibido-girar-izquierda,0.58691406,0,542
+1739857663085,0.0,0.0,0.054086044,prohibido-girar-izquierda,0.76220703,1,553
+1739857704603,0.0,0.0,0.023902386,zona-escolar,0.8208008,1,618
+1739857705185,0.0,0.0,0.023902386,zona-escolar,0.91308594,1,617
+1739857705815,0.0,0.0,0.023902386,zona-escolar,0.9086914,1,612
