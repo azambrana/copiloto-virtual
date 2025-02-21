@@ -3,6 +3,7 @@ package com.copilotovirtual
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -21,6 +22,8 @@ import com.copilotovirtual.model.SpeedState
 import com.copilotovirtual.utils.GPSManager
 import kotlinx.coroutines.*
 import com.copilotovirtual.utils.SoundPlayer
+import java.lang.Integer.parseInt
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -85,19 +88,27 @@ class MainActivity : AppCompatActivity() {
         var distanceLimitExceeded = 0f
         coroutineScope.launch {
             while (isLoopRunning) {
-                Log.d("Loop", "Timestamp: ${System.currentTimeMillis()}, Speed: ${SpeedState.currentSpeed}, SpeedLimit: ${SpeedLimitState.currentSpeedLimit}, Distance: ${DistanceState.totalDistance}")
+                Log.d("ISA Loop", "Timestamp: ${System.currentTimeMillis()}, Speed: ${SpeedState.currentSpeed}, SpeedLimit: ${SpeedLimitState.currentSpeedLimit}, Distance: ${DistanceState.totalDistance}")
 
-                if (!speedLimitExceeded && SpeedLimitState.currentSpeedLimit > 0 && SpeedState.currentSpeed > SpeedLimitState.currentSpeedLimit) {
+                val deltaSpeed = SpeedState.currentSpeed - SpeedLimitState.currentSpeedLimit
+
+                if (!speedLimitExceeded && SpeedLimitState.currentSpeedLimit > 0 && deltaSpeed > 0 && abs(deltaSpeed.toInt()) % 5 == 0) {
                     speedLimitExceeded = true
                     distanceLimitExceeded = DistanceState.totalDistance
                     val message = "Exceso de velocidad: ${SpeedState.currentSpeed} km/h, Límite: ${SpeedLimitState.currentSpeedLimit} km/h"
                     toast(message)
-                    Log.d("Loop", message)
+                    Log.d("ISA Loop", message)
 
                     soundPlayer.playSound("exceso-velocidad")
 
                     // reset speed limit
                     SpeedLimitState.currentSpeedLimit = 40f
+                }
+
+                if (speedLimitExceeded){
+                    findViewById<TextView>(R.id.currentSpeed).setTextColor(ContextCompat.getColor(baseContext, R.color.text_red))
+                } else {
+                    findViewById<TextView>(R.id.currentSpeed).setTextColor(ContextCompat.getColor(baseContext, R.color.text_white))
                 }
 
                 // mantener el límite dentro de los siguientes 100 metros
@@ -133,6 +144,9 @@ class MainActivity : AppCompatActivity() {
         DistanceState.totalDistance += distance
         LocationState.latitude = latitude
         LocationState.longitude = longitude
+
+        findViewById<TextView>(R.id.speedLimit).text = SpeedLimitState.currentSpeedLimit.toInt().toString() + " km/h"
+        findViewById<TextView>(R.id.currentSpeed).text = speed.toInt().toString() + " km/h"
 
         Log.d("Location", "Lat: $latitude, Lon: $longitude, Speed: $speed, Distance: $distance")
     }
