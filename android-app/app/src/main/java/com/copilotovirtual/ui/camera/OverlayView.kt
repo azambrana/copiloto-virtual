@@ -1,4 +1,4 @@
-package com.copilotovirtual.ui
+package com.copilotovirtual.ui.camera
 
 import android.content.Context
 import android.graphics.Canvas
@@ -10,11 +10,11 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.copilotovirtual.R
-import com.copilotovirtual.model.BoundingBoxYOLOv10
+import com.copilotovirtual.data.model.BoundingBox
 
 class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
-    private var results = listOf<BoundingBoxYOLOv10>()
+    private var results = listOf<BoundingBox>()
     private var boxPaint = Paint()
     private var textBackgroundPaint = Paint()
     private var textPaint = Paint()
@@ -78,7 +78,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         }
     }
 
-    fun setResults(boundingBoxes: List<BoundingBoxYOLOv10>) {
+    fun setResults(boundingBoxes: List<BoundingBox>) {
         results = boundingBoxes
         invalidate()
     }

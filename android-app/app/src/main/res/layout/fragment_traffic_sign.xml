@@ -1,0 +1,53 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.copilotovirtual.ui.viewmodel.TrafficSignViewModel" />
+        <variable
+            name="speedLimitViewModel"
+            type="com.copilotovirtual.ui.viewmodel.SpeedLimitViewModel" />
+        <variable
+            name="currentSpeedViewModel"
+            type="com.copilotovirtual.ui.viewmodel.CurrentSpeedViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Traffic Sign Icon -->
+        <ImageView
+            android:id="@+id/trafficSignImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:trafficSignVisibility="@{viewModel.detectedTrafficSign}"
+            app:trafficSignImage="@{viewModel.detectedTrafficSign}"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true" />
+
+        <!-- Speed Limit Traffic Sign Icon -->
+        <ImageView
+            android:id="@+id/speedLimitTrafficSignImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:trafficSignVisibility="@{speedLimitViewModel.detectedSpeedSign}"
+            app:trafficSignImage="@{speedLimitViewModel.detectedSpeedSign}"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true" />
+
+        <!-- Current Speed Display -->
+        <TextView
+            android:id="@+id/currentSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='@{currentSpeedViewModel.currentSpeed.toString() + " km/h"}'
+            android:textSize="30sp"
+            android:textColor="@color/text_yellow"
+            android:layout_below="@id/speedLimitTrafficSignImage"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp" />
+
+    </RelativeLayout>
+</layout>

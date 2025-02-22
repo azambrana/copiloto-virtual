@@ -1,10 +1,9 @@
-package com.copilotovirtual.ui
+package com.copilotovirtual.ui.camera
 
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,24 +11,32 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.copilotovirtual.Constants.LABELS_PATH
 import com.copilotovirtual.Constants.MODEL_PATH_YOLOv10
+import com.copilotovirtual.DetectorListener
 import com.copilotovirtual.YOLOv10Detector
+import com.copilotovirtual.data.model.BaseBoundingBox
 import com.copilotovirtual.databinding.FragmentCameraBinding
-import com.copilotovirtual.model.BoundingBoxYOLOv10
-import com.copilotovirtual.model.LocationState
-import com.copilotovirtual.model.SpeedLimitState
-import com.copilotovirtual.model.SpeedState
+import com.copilotovirtual.data.model.BoundingBox
+import com.copilotovirtual.data.model.LocationState
+import com.copilotovirtual.data.model.SpeedLimitState
+import com.copilotovirtual.data.model.SpeedState
+import com.copilotovirtual.data.model.TrafficSign
+import com.copilotovirtual.ui.viewmodel.CurrentSpeedViewModel
+import com.copilotovirtual.ui.viewmodel.SpeedLimitViewModel
+import com.copilotovirtual.ui.viewmodel.TrafficSignViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -41,7 +48,7 @@ import com.copilotovirtual.utils.SoundPlayer
 /**
  * Fragmento que muestra la cámara y detecta objetos en tiempo real.
  */
-class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
+class CameraFragment : Fragment(), DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -52,12 +59,14 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
     private var cameraProvider: ProcessCameraProvider? = null
     private var YOLOv10Detector: YOLOv10Detector? = null
     private lateinit var cameraExecutor: ExecutorService
-    private val mediaPlayer = MediaPlayer()
-    private val firstTimestamp = System.currentTimeMillis()
     private var previousClassName = ""
     private var previousTimestamp = 0L
     private lateinit var csvLogger: CSVLogger
     private lateinit var soundPlayer: SoundPlayer
+
+    val trafficSignViewModel: TrafficSignViewModel by activityViewModels()
+    val speedLimitViewModel: SpeedLimitViewModel by activityViewModels()
+    val currentSpeedViewModel: CurrentSpeedViewModel by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
@@ -88,6 +97,27 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
         soundPlayer = SoundPlayer(requireContext())
 
         createCSVFile()
+
+
+
+        // Simulate detection
+        val detectedSign = TrafficSign(
+            type = "pare",
+            confidence = 0.98f,
+            position = BaseBoundingBox(100f, 200f, 300f, 400f, 0f, 0f, 0f, 0f, 0f, 1, "pare")
+        )
+
+        val speedLimitDetectedSign = TrafficSign(
+            type = "limite-velocidad-10",
+            confidence = 0.98f,
+            position = BaseBoundingBox(100f, 200f, 300f, 400f, 0f, 0f, 0f, 0f, 0f, 1, "pare")
+        )
+
+        // Update ViewModel
+        currentSpeedViewModel.updateCurrentSpeed(20)
+        trafficSignViewModel.updateTrafficSign(detectedSign)
+        speedLimitViewModel.updateSpeedLimitSign(speedLimitDetectedSign)
+
     }
 
     private fun startCamera() {
@@ -98,6 +128,9 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    /**
+     * Configura las opciones de la cámara y los casos de uso.
+     */
     private fun bindCameraUseCases() {
         val cameraProvider = cameraProvider ?: throw IllegalStateException("Camera initialization failed.")
 
@@ -108,13 +141,19 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
             .requireLensFacing(CameraSelector.LENS_FACING_BACK)
             .build()
 
+        val resolutionSelector = ResolutionSelector.Builder()
+            .setAspectRatioStrategy(
+                AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY
+            )
+            .build()
+
         preview =  Preview.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            .setResolutionSelector(resolutionSelector)
             .setTargetRotation(rotation)
             .build()
 
         imageAnalyzer = ImageAnalysis.Builder()
-            .setTargetAspectRatio(AspectRatio.RATIO_4_3)
+            .setResolutionSelector(resolutionSelector)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .setTargetRotation(binding.viewFinder.display.rotation)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
@@ -208,7 +247,7 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
     }
 
 
-    override fun onDetect(boundingBoxes: List<BoundingBoxYOLOv10>, inferenceTime: Long) {
+    override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTimestamp = System.currentTimeMillis()
         requireActivity().runOnUiThread {
             binding.overlay.apply {
@@ -256,7 +295,7 @@ class CameraFragment : Fragment(), YOLOv10Detector.DetectorListener {
     /**
      * Registra los datos de las detecciones en el archivo CSV.
      */
-    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBoxYOLOv10>, timestamp: Long, best: BoundingBoxYOLOv10?, inferenceTime: Long) {
+    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
         try {
             for (bbox in boundingBoxes) {
                 val timestamp = System.currentTimeMillis()

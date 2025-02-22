@@ -1,4 +1,4 @@
-package com.copilotovirtual.model
+package com.copilotovirtual.data.model
 
 object LocationState {
     var latitude: Double = 0.0

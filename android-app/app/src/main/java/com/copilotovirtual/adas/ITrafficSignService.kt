@@ -1,0 +1,3 @@
+package com.copilotovirtual.adas
+
+interface ITrafficSignService

@@ -3,6 +3,7 @@ package com.copilotovirtual
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowInsets
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -15,10 +16,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.copilotovirtual.databinding.ActivityMainBinding
-import com.copilotovirtual.model.DistanceState
-import com.copilotovirtual.model.LocationState
-import com.copilotovirtual.model.SpeedLimitState
-import com.copilotovirtual.model.SpeedState
+import com.copilotovirtual.data.model.DistanceState
+import com.copilotovirtual.data.model.LocationState
+import com.copilotovirtual.data.model.SpeedLimitState
+import com.copilotovirtual.data.model.SpeedState
 import com.copilotovirtual.utils.GPSManager
 import kotlinx.coroutines.*
 import com.copilotovirtual.utils.SoundPlayer
@@ -48,8 +49,6 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(binding.root)
 
-        setStatusBarColor(R.color.primary)
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -68,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             gpsManager.requestPermissions(this, LOCATION_PERMISSION_REQUEST_CODE)
         }
-
 
         soundPlayer = SoundPlayer(baseContext)
 
@@ -121,17 +119,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setStatusBarColor(color: Int) {
-        window?.statusBarColor = ContextCompat.getColor(baseContext, color)
-        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
-    }
-
     private fun onLocationReceived(location: Location) {
         val latitude = location.latitude
         val longitude = location.longitude
         val speed = location.speed * 3.6f // Convert to km/h
-        val accuracy = location.accuracy
-        val timestamp = location.time
 
         var distance = 0f
         lastLocation?.let {

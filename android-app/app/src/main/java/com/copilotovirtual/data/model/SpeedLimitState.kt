@@ -1,4 +1,4 @@
-package com.copilotovirtual.model
+package com.copilotovirtual.data.model
 
 object SpeedLimitState {
     // Máxima velocidad permitida en la ciudad

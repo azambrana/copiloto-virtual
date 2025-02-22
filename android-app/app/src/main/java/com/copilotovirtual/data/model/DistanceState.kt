@@ -1,4 +1,4 @@
-package com.copilotovirtual.model
+package com.copilotovirtual.data.model
 
 object DistanceState {
     var relativeDistance: Float = 0f
