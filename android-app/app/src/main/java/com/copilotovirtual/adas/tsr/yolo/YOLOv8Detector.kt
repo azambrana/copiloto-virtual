@@ -1,6 +1,7 @@
-package com.copilotovirtual
+package com.copilotovirtual.adas.tsr.yolo
 
 import android.content.Context
+import com.copilotovirtual.adas.tsr.DetectorListener
 import com.copilotovirtual.data.model.BoundingBox
 import com.copilotovirtual.data.model.FullBoundingBox
 
@@ -11,9 +12,8 @@ class YOLOv8Detector(
     context: Context,
     modelPath: String,
     labelPath: String,
-    detectorListener: DetectorListener,
-    message: (String) -> Unit
-) : YOLODetector(context, modelPath, labelPath, detectorListener, message) {
+    detectorListener: DetectorListener
+) : YOLODetector(context, modelPath, labelPath, detectorListener) {
 
     /**
      * Obtiene las mejores bounding boxes de la salida del modelo
@@ -68,6 +68,8 @@ class YOLOv8Detector(
 
     /**
      * Aplica el algoritmo de Non-Maximum Suppression para eliminar bounding boxes duplicados
+     * @param boxes Lista de bounding boxes
+     * @return Lista de bounding boxes sin duplicados
      */
     private fun applyNMS(boxes: List<FullBoundingBox>) : MutableList<FullBoundingBox> {
         val sortedBoxes = boxes.sortedByDescending { it.cnf }.toMutableList()
@@ -93,6 +95,9 @@ class YOLOv8Detector(
 
     /**
      * Calcula la intersección sobre unión entre dos bounding boxes
+     * @param box1 Bounding box 1
+     * @param box2 Bounding box 2
+     * @return Valor de la intersección sobre unión
      */
     private fun calculateIoU(box1: FullBoundingBox, box2: FullBoundingBox): Float {
         val x1 = maxOf(box1.x1, box2.x1)

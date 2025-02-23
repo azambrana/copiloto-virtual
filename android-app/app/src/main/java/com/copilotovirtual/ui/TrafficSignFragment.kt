@@ -1,4 +1,4 @@
-package com.copilotovirtual.ui.tsr
+package com.copilotovirtual.ui
 
 import android.os.Bundle
 import android.view.LayoutInflater

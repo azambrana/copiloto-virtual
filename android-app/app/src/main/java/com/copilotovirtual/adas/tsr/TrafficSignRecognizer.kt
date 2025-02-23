@@ -1,23 +1,24 @@
 package com.copilotovirtual.adas.tsr
 
+import android.graphics.Bitmap
 import com.copilotovirtual.data.model.TrafficSign
 
 interface TrafficSignRecognizer {
     /**
-     * Processes a given frame (image) and returns detected traffic signs.
-     * @param imageData The image frame in a format suitable for processing.
-     * @return A list of detected traffic signs with their types and positions.
+     * Procesa un fotograma y devuelve una lista de señales de tráfico detectadas.
+     * @param bitmap El fotograma a procesar.
+     * @return Una lista de señales de tráfico detectadas.
      */
-    fun detectTrafficSigns(imageData: ByteArray): List<TrafficSign>
+    fun detectTrafficSigns(bitmap: Bitmap): List<TrafficSign>
 
     /**
-     * Retrieves the last detected traffic sign.
-     * @return The last detected traffic sign or null if no sign was detected.
+     * Retorna la última señal de tráfico detectada.
+     * @return La última señal de tráfico detectada.
      */
-    fun getLastDetectedSign(): TrafficSign?
+    fun fetchLastDetectedSign(): TrafficSign?
 
     /**
-     * Clears the stored detection results.
+     * Reinicia la detección.
      */
     fun resetDetection()
 }

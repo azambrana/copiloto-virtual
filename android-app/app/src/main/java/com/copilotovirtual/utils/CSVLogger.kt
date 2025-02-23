@@ -86,4 +86,32 @@ class CSVLogger(
             Log.e("CSVLogger", "Error writing to CSV file", e)
         }
     }
+
+    /**
+     * Cierra el archivo CSV
+     * @return true si el archivo se cerró correctamente, false en caso contrario
+     */
+    fun close(): Boolean {
+        return try {
+            FileWriter(csvFile, true).close()
+            true
+        } catch (e: IOException) {
+            Log.e("CSVLogger", "Error closing CSV file", e)
+            false
+        }
+    }
+
+    /**
+     * Retorna la ruta del archivo CSV
+     */
+    fun getCSVFilePath(): String {
+        return csvFile.absolutePath
+    }
+
+    /**
+     * Retorna el nombre del archivo CSV
+     */
+    fun getCSVFileName(): String {
+        return csvFile.name
+    }
 }

@@ -1,6 +1,7 @@
-package com.copilotovirtual
+package com.copilotovirtual.adas.tsr.yolo
 
 import android.content.Context
+import com.copilotovirtual.adas.tsr.DetectorListener
 import com.copilotovirtual.data.model.BaseBoundingBox
 import com.copilotovirtual.data.model.BoundingBox
 
@@ -9,8 +10,7 @@ class YOLOv10Detector(
     modelPath: String,
     labelPath: String,
     detectorListener: DetectorListener,
-    message: (String) -> Unit
-) : YOLODetector(context, modelPath, labelPath, detectorListener, message) {
+) : YOLODetector(context, modelPath, labelPath, detectorListener) {
 
     override fun bestBox(array: FloatArray) : List<BoundingBox> {
         val boundingBoxes = mutableListOf<BoundingBox>()

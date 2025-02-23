@@ -1,14 +1,15 @@
-package com.copilotovirtual
+package com.copilotovirtual.adas.tsr.yolo
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.SystemClock
+import com.copilotovirtual.adas.tsr.DetectorListener
+import com.copilotovirtual.adas.tsr.ObjectDetector
+import com.copilotovirtual.adas.tsr.TrafficSignRecognizer
 import com.copilotovirtual.data.model.BoundingBox
 import com.copilotovirtual.utils.LabelsLoader
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Interpreter
-import org.tensorflow.lite.gpu.CompatibilityList
-import org.tensorflow.lite.gpu.GpuDelegate
 import org.tensorflow.lite.support.common.FileUtil
 import org.tensorflow.lite.support.common.ops.CastOp
 import org.tensorflow.lite.support.common.ops.NormalizeOp
@@ -20,9 +21,8 @@ abstract class YOLODetector (
     val context: Context,
     val modelPath: String,
     val labelPath: String,
-    val detectorListener: DetectorListener,
-    val message: (String) -> Unit
-) {
+    val detectorListener: DetectorListener
+): ObjectDetector {
     var interpreter: Interpreter
     var labels = mutableListOf<String>()
 
@@ -37,15 +37,8 @@ abstract class YOLODetector (
         .build()
 
     init {
-        val compatList = CompatibilityList()
-
         val options = Interpreter.Options().apply{
-            if(compatList.isDelegateSupportedOnThisDevice){
-                val delegateOptions = compatList.bestOptionsForThisDevice
-                this.addDelegate(GpuDelegate(delegateOptions))
-            } else {
-                this.setNumThreads(4)
-            }
+            this.setNumThreads(4)
         }
 
         val model = FileUtil.loadMappedFile(context, modelPath)
@@ -68,16 +61,16 @@ abstract class YOLODetector (
         }
 
         if (outputShape != null) {
-            numElements = outputShape[1]
-            numChannel = outputShape[2]
+            numChannel = outputShape[1]
+            numElements = outputShape[2]
         }
     }
 
-    fun detect(frame: Bitmap) {
+    override fun detect(frame: Bitmap): List<BoundingBox> {
         if (tensorWidth == 0
             || tensorHeight == 0
             || numChannel == 0
-            || numElements == 0) return
+            || numElements == 0) return emptyList()
 
         var inferenceTime = SystemClock.uptimeMillis()
 
@@ -96,33 +89,12 @@ abstract class YOLODetector (
 
         if (bestBoxes.isEmpty()) {
             detectorListener.onEmptyDetect()
-            return
+            return emptyList()
         }
 
         detectorListener.onDetect(bestBoxes, inferenceTime)
-    }
 
-    fun restart(isGpu: Boolean) {
-        interpreter.close()
-
-        val options = if (isGpu) {
-            val compatList = CompatibilityList()
-            Interpreter.Options().apply{
-                if(compatList.isDelegateSupportedOnThisDevice){
-                    val delegateOptions = compatList.bestOptionsForThisDevice
-                    this.addDelegate(GpuDelegate(delegateOptions))
-                } else {
-                    this.setNumThreads(4)
-                }
-            }
-        } else {
-            Interpreter.Options().apply{
-                this.setNumThreads(4)
-            }
-        }
-
-        val model = FileUtil.loadMappedFile(context, modelPath)
-        interpreter = Interpreter(model, options)
+        return bestBoxes
     }
 
     fun close() {

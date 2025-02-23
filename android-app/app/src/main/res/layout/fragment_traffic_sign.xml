@@ -47,7 +47,9 @@
             android:textColor="@color/text_yellow"
             android:layout_below="@id/speedLimitTrafficSignImage"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="10dp" />
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            />
 
     </RelativeLayout>
 </layout>

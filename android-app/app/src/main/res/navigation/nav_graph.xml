@@ -10,10 +10,4 @@
         android:name="com.copilotovirtual.ui.camera.CameraFragment"
         android:label="fragment_camera"
         tools:layout="@layout/fragment_camera" />
-
-    <fragment
-        android:id="@+id/trafficSignFragment"
-        android:name="com.copilotovirtual.ui.tsr.TrafficSignFragment"
-        android:label="Traffic Signs"
-        tools:layout="@layout/fragment_traffic_sign" />
 </navigation>

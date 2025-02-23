@@ -21,5 +21,5 @@ data class TrafficSign(
     /**
      * Posición de la señal en la imagen.
      */
-    val position: BoundingBox
+    val position: BoundingBox?
 )

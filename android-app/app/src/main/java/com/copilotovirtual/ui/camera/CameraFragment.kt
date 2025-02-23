@@ -22,11 +22,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.copilotovirtual.Constants.LABELS_PATH
-import com.copilotovirtual.Constants.MODEL_PATH_YOLOv10
-import com.copilotovirtual.DetectorListener
-import com.copilotovirtual.YOLOv10Detector
+import com.copilotovirtual.adas.Constants.LABELS_PATH
+import com.copilotovirtual.adas.Constants.MODEL_PATH_YOLOv10
+import com.copilotovirtual.adas.tsr.TrafficSignRecognizerService
+import com.copilotovirtual.adas.tsr.DetectorListener
+import com.copilotovirtual.adas.tsr.DetectorType
+import com.copilotovirtual.adas.tsr.TrafficSignRecognizerServiceImpl
+import com.copilotovirtual.adas.tsr.yolo.YOLODetector
+import com.copilotovirtual.adas.tsr.yolo.YOLOv10Detector
 import com.copilotovirtual.data.model.BaseBoundingBox
 import com.copilotovirtual.databinding.FragmentCameraBinding
 import com.copilotovirtual.data.model.BoundingBox
@@ -45,28 +50,40 @@ import java.util.concurrent.Executors
 import com.copilotovirtual.utils.CSVLogger
 import com.copilotovirtual.utils.SoundPlayer
 
+private const val NINE_SECONDS = 9000
+
+private const val SPEED_LIMIT_PREFFIX = "limite-velocidad-"
+
+private const val MIN_SPEED_LIMIT = 10f
+
+private const val ACCEPTABLE_CONFIDENCE = 0.5
+
 /**
  * Fragmento que muestra la cámara y detecta objetos en tiempo real.
+ *
+ * @author Alvaro Zambrana Sejas
+ * @version 0.4
  */
 class CameraFragment : Fragment(), DetectorListener {
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
-    private val isFrontCamera = false
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private var YOLOv10Detector: YOLOv10Detector? = null
+    private var yoloDetector: YOLODetector? = null
     private lateinit var cameraExecutor: ExecutorService
     private var previousClassName = ""
     private var previousTimestamp = 0L
     private lateinit var csvLogger: CSVLogger
     private lateinit var soundPlayer: SoundPlayer
 
+    private lateinit var trafficSignRecognizerService: TrafficSignRecognizerService
+
     val trafficSignViewModel: TrafficSignViewModel by activityViewModels()
     val speedLimitViewModel: SpeedLimitViewModel by activityViewModels()
-    val currentSpeedViewModel: CurrentSpeedViewModel by activityViewModels()
+    val currentSpeedViewModel: CurrentSpeedViewModel by viewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
@@ -83,9 +100,7 @@ class CameraFragment : Fragment(), DetectorListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
-            YOLOv10Detector = YOLOv10Detector(requireContext(), MODEL_PATH_YOLOv10, LABELS_PATH, this) {
-                toast(it)
-            }
+            yoloDetector = YOLOv10Detector(requireContext(), MODEL_PATH_YOLOv10, LABELS_PATH, this)
         }
 
         if (allPermissionsGranted()) {
@@ -94,32 +109,23 @@ class CameraFragment : Fragment(), DetectorListener {
             ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
+        trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = DetectorType.YOLOv8)
         soundPlayer = SoundPlayer(requireContext())
 
         createCSVFile()
 
-
-
-        // Simulate detection
-        val detectedSign = TrafficSign(
-            type = "pare",
-            confidence = 0.98f,
-            position = BaseBoundingBox(100f, 200f, 300f, 400f, 0f, 0f, 0f, 0f, 0f, 1, "pare")
+        val defaultSpeedLimitDetectedSign = TrafficSign(
+            type = "limite-velocidad-40",
+            confidence = 1f,
+            position = null
         )
 
-        val speedLimitDetectedSign = TrafficSign(
-            type = "limite-velocidad-10",
-            confidence = 0.98f,
-            position = BaseBoundingBox(100f, 200f, 300f, 400f, 0f, 0f, 0f, 0f, 0f, 1, "pare")
-        )
-
-        // Update ViewModel
-        currentSpeedViewModel.updateCurrentSpeed(20)
-        trafficSignViewModel.updateTrafficSign(detectedSign)
-        speedLimitViewModel.updateSpeedLimitSign(speedLimitDetectedSign)
-
+        speedLimitViewModel.updateSpeedLimitSign(defaultSpeedLimitDetectedSign)
     }
 
+    /**
+     * Inicia la cámara.
+     */
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
         cameraProviderFuture.addListener({
@@ -171,15 +177,6 @@ class CameraFragment : Fragment(), DetectorListener {
 
             val matrix = Matrix().apply {
                 postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
-
-                if (isFrontCamera) {
-                    postScale(
-                        -1f,
-                        1f,
-                        imageProxy.width.toFloat(),
-                        imageProxy.height.toFloat()
-                    )
-                }
             }
 
             val rotatedBitmap = Bitmap.createBitmap(
@@ -187,7 +184,9 @@ class CameraFragment : Fragment(), DetectorListener {
                 matrix, true
             )
 
-            YOLOv10Detector?.detect(rotatedBitmap)
+            yoloDetector?.detect(rotatedBitmap)
+            val detectedTrafficSignList = trafficSignRecognizerService.processFrame(rotatedBitmap)
+            detectedTrafficSignList.forEach { Log.d(TAG, it.toString()) }
         }
 
         cameraProvider.unbindAll()
@@ -201,10 +200,16 @@ class CameraFragment : Fragment(), DetectorListener {
             )
 
             preview?.surfaceProvider = binding.viewFinder.surfaceProvider
-        } catch(exc: Exception) {
-            Log.e(TAG, "Use case binding failed", exc)
+        } catch(exc: Exception ) {
+            when (exc) {
+                is IllegalStateException,
+                is UnsupportedOperationException,
+                is IllegalArgumentException -> {
+                    Log.e(TAG, "Use case binding failed", exc)
+                }
+                else -> throw exc
+            }
         }
-
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -218,7 +223,7 @@ class CameraFragment : Fragment(), DetectorListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        YOLOv10Detector?.close()
+        yoloDetector?.close()
         cameraExecutor.shutdown()
         soundPlayer.release()
     }
@@ -246,7 +251,6 @@ class CameraFragment : Fragment(), DetectorListener {
         }
     }
 
-
     override fun onDetect(boundingBoxes: List<BoundingBox>, inferenceTime: Long) {
         val currentTimestamp = System.currentTimeMillis()
         requireActivity().runOnUiThread {
@@ -256,16 +260,53 @@ class CameraFragment : Fragment(), DetectorListener {
             }
 
             if (boundingBoxes.isNotEmpty()) {
-                // TODO: Compute the class with higher priority and importance
                 val best = boundingBoxes.maxByOrNull { it.cnf }
 
                 if (best != null) {
-                    if (currentTimestamp - previousTimestamp > 9000) {
+                    if (currentTimestamp - previousTimestamp > NINE_SECONDS) {
                         if (acceptableConfidence(best.cnf)) {
                             previousClassName = best.clsName
                             previousTimestamp = currentTimestamp
                             soundPlayer.playSound(best.clsName)
                             toast("Detectado: ${best.clsName} [${best.cnf}]")
+
+                            val detectedTrafficSign = TrafficSign(
+                                type = best.clsName,
+                                confidence = best.cnf,
+                                position = BaseBoundingBox(
+                                    best.x1, best.y1, best.x2, best.y2,
+                                    best.cx, best.cy, best.w, best.h,
+                                    best.cnf, best.cls, best.clsName
+                                )
+                            )
+
+                            this.trafficSignViewModel.updateTrafficSign(detectedTrafficSign)
+
+                            if (best.clsName.startsWith(SPEED_LIMIT_PREFFIX)) {
+                                val detectedSpeedLimitSign = TrafficSign(
+                                    type = best.clsName,
+                                    confidence = best.cnf,
+                                    position = BaseBoundingBox(
+                                        best.x1, best.y1, best.x2, best.y2,
+                                        best.cx, best.cy, best.w, best.h,
+                                        best.cnf, best.cls, best.clsName
+                                    )
+                                )
+                                this.speedLimitViewModel.updateSpeedLimitSign(detectedSpeedLimitSign)
+                            }
+
+                            if (best.clsName.startsWith("zona-escolar")) {
+                                val detectedSpeedLimitSign = TrafficSign(
+                                    type = "limite-velocidad-10",
+                                    confidence = best.cnf,
+                                    position = BaseBoundingBox(
+                                        best.x1, best.y1, best.x2, best.y2,
+                                        best.cx, best.cy, best.w, best.h,
+                                        best.cnf, best.cls, best.clsName
+                                    )
+                                )
+                                this.speedLimitViewModel.updateSpeedLimitSign(detectedSpeedLimitSign)
+                            }
                         }
                     }
                 }
@@ -298,21 +339,20 @@ class CameraFragment : Fragment(), DetectorListener {
     private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
         try {
             for (bbox in boundingBoxes) {
-                val timestamp = System.currentTimeMillis()
-                var isAcceptable = acceptableConfidence(bbox.cnf)
+                val isAcceptable = acceptableConfidence(bbox.cnf)
                 val sound = if (isAcceptable) "1" else "0"
                 val clsName = bbox.clsName
 
-                if (isAcceptable && clsName.startsWith("limite-velocidad-")) {
-                    SpeedLimitState.currentSpeedLimit = clsName.substringAfter("limite-velocidad-").toFloat()
+                if (isAcceptable && clsName.startsWith(SPEED_LIMIT_PREFFIX)) {
+                    SpeedLimitState.currentSpeedLimit = clsName.substringAfter(SPEED_LIMIT_PREFFIX).toFloat()
                 } else if (isAcceptable && clsName.startsWith("zona-escolar")) {
-                    SpeedLimitState.currentSpeedLimit = 10f
+                    SpeedLimitState.currentSpeedLimit = MIN_SPEED_LIMIT
                 }
 
                 csvLogger.logRowData(timestamp, LocationState.latitude, LocationState.longitude, SpeedState.currentSpeed, clsName, bbox.cnf, sound, inferenceTime)
             }
         } catch (e: IOException) {
-            Log.e("CSVError", "Error writing to CSV file", e)
+            Log.e("CSVError", "Error de escritura en el archivo CSV ${csvLogger.getCSVFileName()}", e)
         }
     }
 
@@ -320,6 +360,6 @@ class CameraFragment : Fragment(), DetectorListener {
      * Verifica si la confianza de la detección es aceptable.
      */
     private fun acceptableConfidence(cnf: Float): Boolean {
-        return cnf >= 0.7
+        return cnf >= ACCEPTABLE_CONFIDENCE
     }
 }

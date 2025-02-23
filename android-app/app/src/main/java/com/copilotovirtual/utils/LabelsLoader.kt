@@ -1,7 +1,6 @@
 package com.copilotovirtual.utils
 
 import android.content.Context
-import com.copilotovirtual.Constants
 
 /**
  * Clase para cargar las etiquetas de un archivo de assets.

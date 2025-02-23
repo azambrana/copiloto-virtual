@@ -55,7 +55,7 @@
                 app:layout_constraintVertical_bias="0.5" />
 
             <!-- Speed Limit & Current Speed -->
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
@@ -64,30 +64,22 @@
                 app:layout_constraintBottom_toBottomOf="parent">
 
                 <TextView
-                    android:id="@+id/speedLimit"
-                    android:layout_width="225dp"
-                    android:layout_height="wrap_content"
-                    android:text="40 km/h"
-                    android:textColor="@color/text_yellow"
-                    android:textSize="40sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
                     android:id="@+id/currentSpeed"
-                    android:layout_width="224dp"
+                    android:layout_width="200dp"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginTop="100dp"
                     android:text="40 km/h"
-                    android:textColor="@color/white"
-                    android:textSize="40sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </LinearLayout>
+                    android:textAlignment="viewEnd"
+                    android:textColor="@color/text_yellow"
+                    android:textSize="40sp" />
+            </RelativeLayout>
 
             <!-- Fragment for Traffic Sign -->
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/trafficSignFragmentContainer"
-                android:name="com.copilotovirtual.ui.tsr.TrafficSignFragment"
+                android:name="com.copilotovirtual.ui.TrafficSignFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="16dp"

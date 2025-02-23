@@ -7,11 +7,13 @@ import android.view.WindowInsets
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -103,12 +105,6 @@ class MainActivity : AppCompatActivity() {
                     SpeedLimitState.currentSpeedLimit = 40f
                 }
 
-                if (speedLimitExceeded){
-                    findViewById<TextView>(R.id.currentSpeed).setTextColor(ContextCompat.getColor(baseContext, R.color.text_red))
-                } else {
-                    findViewById<TextView>(R.id.currentSpeed).setTextColor(ContextCompat.getColor(baseContext, R.color.text_white))
-                }
-
                 // mantener el límite dentro de los siguientes 100 metros
                 if (speedLimitExceeded && DistanceState.totalDistance - distanceLimitExceeded > 100) {
                     speedLimitExceeded = false
@@ -136,7 +132,7 @@ class MainActivity : AppCompatActivity() {
         LocationState.latitude = latitude
         LocationState.longitude = longitude
 
-        findViewById<TextView>(R.id.speedLimit).text = SpeedLimitState.currentSpeedLimit.toInt().toString() + " km/h"
+        // findViewById<TextView>(R.id.speedLimit).text = SpeedLimitState.currentSpeedLimit.toInt().toString() + " km/h"
         findViewById<TextView>(R.id.currentSpeed).text = speed.toInt().toString() + " km/h"
 
         Log.d("Location", "Lat: $latitude, Lon: $longitude, Speed: $speed, Distance: $distance")
