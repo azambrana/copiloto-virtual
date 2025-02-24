@@ -1,5 +1,6 @@
 package com.copilotovirtual.adas.tsr
 
+import android.content.Context
 import android.graphics.Bitmap
 import com.copilotovirtual.data.model.TrafficSign
 
@@ -11,14 +12,16 @@ import com.copilotovirtual.data.model.TrafficSign
  * @author Alvaro Zambrana Sejas
  * @since 0.4
  */
-interface TrafficSignRecognizerService {
+abstract class TrafficSignRecognizerService (
+    private val context: Context,
+    private val detectorType: DetectorType,
+    private val trafficSignListener: TrafficSignListener
+) {
 
     /**
      * Procesa un fotograma y devuelve una lista de señales de tráfico detectadas.
      * @param bitmap El fotograma a procesar.
      * @return Una lista de señales de tráfico detectadas.
      */
-    fun processFrame(bitmap: Bitmap): List<TrafficSign> {
-        return emptyList()
-    }
+    abstract fun processFrame(bitmap: Bitmap): TrafficSignRecognizerResults
 }

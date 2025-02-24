@@ -3,6 +3,7 @@ package com.copilotovirtual.adas.tsr
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.copilotovirtual.adas.tsr.yolo.ObjectDetectorResults
 import com.copilotovirtual.data.model.BoundingBox
 import com.copilotovirtual.data.model.TrafficSign
 
@@ -24,30 +25,38 @@ private const val TAG = "TrafficSignRecognizerImpl"
  */
 class TrafficSignRecognizerImpl(
     private val detectorType: DetectorType,
-    private val context: Context
+    private val context: Context,
+    private val trafficSignListener: TrafficSignListener
 ) : TrafficSignRecognizer, DetectorListener {
-    private lateinit var boundingBoxList: List<BoundingBox>
+    private lateinit var results: ObjectDetectorResults
+    private lateinit var trafficSignRecognizerResults: TrafficSignRecognizerResults
     var lastDetectedSign: TrafficSign? = null
     var objectDetector: ObjectDetector? = null
 
     init {
         // TODO refactor to support multiple DetectorListener
-        objectDetector = ObjectDetectorFactory.create(detectorType, context,this)
+        objectDetector = ObjectDetectorFactory.create(detectorType, context, this)
     }
 
-    override fun detectTrafficSigns(bitmap: Bitmap): List<TrafficSign> {
-        boundingBoxList = objectDetector!!.detect(bitmap)
-        return boundingBoxList.map {
-            TrafficSign(
-                it.clsName,
-                it.cnf,
-                it
-            )
-        }
+    override fun detectTrafficSigns(bitmap: Bitmap): TrafficSignRecognizerResults {
+        results = objectDetector!!.detect(bitmap)
+        trafficSignRecognizerResults = TrafficSignRecognizerResults(
+            trafficSigns = results.boundingBoxes.map {
+                TrafficSign(
+                    it.clsName,
+                    it.cnf,
+                    it
+                )
+            },
+            inferenceTime = results.inferenceTime
+        )
+
+        trafficSignListener.onTrafficSignsDetected(trafficSignRecognizerResults)
+        return trafficSignRecognizerResults
     }
 
     override fun fetchLastDetectedSign(): TrafficSign? {
-        boundingBoxList.last().let {
+        results.boundingBoxes.last().let {
             lastDetectedSign = TrafficSign(
                 it.clsName,
                 it.cnf,

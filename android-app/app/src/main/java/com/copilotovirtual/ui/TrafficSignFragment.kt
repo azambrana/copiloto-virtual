@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.copilotovirtual.databinding.FragmentTrafficSignBinding
 import com.copilotovirtual.ui.viewmodel.CurrentSpeedViewModel
 import com.copilotovirtual.ui.viewmodel.SpeedLimitViewModel
@@ -16,7 +17,7 @@ class TrafficSignFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: TrafficSignViewModel by activityViewModels() // Shared ViewModel
     private val speedLimitViewModel: SpeedLimitViewModel by activityViewModels() // Speed limit signs
-    private val currentSpeedViewModel: CurrentSpeedViewModel by activityViewModels() // Current speed
+    // private val currentSpeedViewModel: CurrentSpeedViewModel by activityViewModels() // Current speed
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -25,7 +26,7 @@ class TrafficSignFragment : Fragment() {
         binding.lifecycleOwner = viewLifecycleOwner
         binding.viewModel = viewModel // Bind ViewModel to XML
         binding.speedLimitViewModel = speedLimitViewModel // Bind second ViewModel
-        binding.currentSpeedViewModel = currentSpeedViewModel // Bind third ViewModel
+        // binding.currentSpeedViewModel = currentSpeedViewModel // Bind third ViewModel
 
         return binding.root
     }

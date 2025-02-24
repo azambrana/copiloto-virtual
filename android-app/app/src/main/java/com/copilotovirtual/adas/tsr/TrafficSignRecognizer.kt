@@ -9,7 +9,7 @@ interface TrafficSignRecognizer {
      * @param bitmap El fotograma a procesar.
      * @return Una lista de señales de tráfico detectadas.
      */
-    fun detectTrafficSigns(bitmap: Bitmap): List<TrafficSign>
+    fun detectTrafficSigns(bitmap: Bitmap): TrafficSignRecognizerResults
 
     /**
      * Retorna la última señal de tráfico detectada.

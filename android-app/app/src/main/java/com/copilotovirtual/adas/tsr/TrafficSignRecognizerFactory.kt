@@ -18,7 +18,11 @@ object TrafficSignRecognizerFactory {
      * @param detectorType Tipo de detector a utilizar.
      * @return Un reconocedor de señales de tráfico.
      */
-    fun create(context: Context, detectorType: DetectorType): TrafficSignRecognizer {
-        return TrafficSignRecognizerImpl(context = context, detectorType = detectorType)
+    fun create(context: Context, detectorType: DetectorType, trafficSignListener: TrafficSignListener): TrafficSignRecognizer {
+        return TrafficSignRecognizerImpl(
+            context = context,
+            detectorType = detectorType,
+            trafficSignListener = trafficSignListener
+        )
     }
 }

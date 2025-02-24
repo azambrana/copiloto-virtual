@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModel
  * @since 0.4
  */
 class CurrentSpeedViewModel : ViewModel() {
-    private val _currentSpeed = MutableLiveData<Int?>()
+    private val _currentSpeed = MutableLiveData<Int?>(0)
     val currentSpeed: LiveData<Int?> get() = _currentSpeed
 
     /**

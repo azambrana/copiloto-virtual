@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.os.SystemClock
 import com.copilotovirtual.adas.tsr.DetectorListener
 import com.copilotovirtual.adas.tsr.ObjectDetector
-import com.copilotovirtual.adas.tsr.TrafficSignRecognizer
 import com.copilotovirtual.data.model.BoundingBox
 import com.copilotovirtual.utils.LabelsLoader
 import org.tensorflow.lite.DataType
@@ -66,11 +65,11 @@ abstract class YOLODetector (
         }
     }
 
-    override fun detect(frame: Bitmap): List<BoundingBox> {
+    override fun detect(frame: Bitmap): ObjectDetectorResults {
         if (tensorWidth == 0
             || tensorHeight == 0
             || numChannel == 0
-            || numElements == 0) return emptyList()
+            || numElements == 0) return ObjectDetectorResults(emptyList(), 0)
 
         var inferenceTime = SystemClock.uptimeMillis()
 
@@ -89,12 +88,12 @@ abstract class YOLODetector (
 
         if (bestBoxes.isEmpty()) {
             detectorListener.onEmptyDetect()
-            return emptyList()
+            return ObjectDetectorResults(emptyList(), 0)
         }
 
         detectorListener.onDetect(bestBoxes, inferenceTime)
 
-        return bestBoxes
+        return return ObjectDetectorResults(bestBoxes, inferenceTime)
     }
 
     fun close() {

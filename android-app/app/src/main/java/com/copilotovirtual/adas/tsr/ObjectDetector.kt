@@ -1,6 +1,7 @@
 package com.copilotovirtual.adas.tsr
 
 import android.graphics.Bitmap
+import com.copilotovirtual.adas.tsr.yolo.ObjectDetectorResults
 import com.copilotovirtual.data.model.BoundingBox
 
 /**
@@ -16,5 +17,5 @@ interface ObjectDetector {
      * @param frame El fotograma a procesar.
      * @return Una lista de objetos detectados.
      */
-    fun detect(frame: Bitmap): List<BoundingBox>
+    fun detect(frame: Bitmap): ObjectDetectorResults
 }

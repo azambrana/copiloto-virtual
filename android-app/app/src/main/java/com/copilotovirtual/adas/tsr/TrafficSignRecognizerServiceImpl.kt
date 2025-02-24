@@ -5,7 +5,8 @@ import android.graphics.Bitmap
 import com.copilotovirtual.data.model.TrafficSign
 
 /**
- * Implementación de [TrafficSignRecognizerService] que utiliza un [TrafficSignRecognizer] para reconocer señales de tráfico.
+ * Implementación de [TrafficSignRecognizerService] que utiliza un [TrafficSignRecognizer] para
+ * detectar señales de tránsito.
  *
  * @see TrafficSignRecognizer
  * @see TrafficSignRecognizerService
@@ -20,16 +21,20 @@ import com.copilotovirtual.data.model.TrafficSign
  * @author Alvaro Zambrana Sejas
  * @since 0.4
  */
-class TrafficSignRecognizerServiceImpl(context: Context, detectorType: DetectorType) :
-    TrafficSignRecognizerService {
+class TrafficSignRecognizerServiceImpl(
+    context: Context,
+    detectorType: DetectorType,
+    trafficSignListener: TrafficSignListener
+) :
+    TrafficSignRecognizerService(context, detectorType, trafficSignListener) {
 
-    private var  recognizer : TrafficSignRecognizer? = null
+    private var recognizer: TrafficSignRecognizer? = null
 
     init {
-        recognizer = TrafficSignRecognizerFactory.create(context, detectorType)
+        recognizer = TrafficSignRecognizerFactory.create(context, detectorType, trafficSignListener)
     }
 
-    override fun processFrame(bitmap: Bitmap): List<TrafficSign> {
-        return recognizer?.detectTrafficSigns(bitmap) ?: emptyList()
+    override fun processFrame(bitmap: Bitmap): TrafficSignRecognizerResults {
+        return recognizer?.detectTrafficSigns(bitmap) ?: TrafficSignRecognizerResults()
     }
 }
