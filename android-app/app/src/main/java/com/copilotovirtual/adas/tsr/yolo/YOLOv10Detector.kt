@@ -5,6 +5,10 @@ import com.copilotovirtual.adas.tsr.DetectorListener
 import com.copilotovirtual.data.model.BaseBoundingBox
 import com.copilotovirtual.data.model.BoundingBox
 
+/**
+ * Clase Detector para realizar la detección de objetos en un frame de video utilizando un modelo de
+ * TensorFlow Lite generado con el framework YOLOv10.
+ */
 class YOLOv10Detector(
     context: Context,
     modelPath: String,

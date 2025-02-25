@@ -8,9 +8,6 @@
         <variable
             name="speedLimitViewModel"
             type="com.copilotovirtual.ui.viewmodel.SpeedLimitViewModel" />
-        <!-- variable
-            name="currentSpeedViewModel"
-            type="com.copilotovirtual.ui.viewmodel.CurrentSpeedViewModel" /-->
     </data>
 
     <RelativeLayout
@@ -36,20 +33,6 @@
             app:trafficSignImage="@{speedLimitViewModel.detectedSpeedSign}"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true" />
-
-        <!-- Current Speed Display -->
-        <!--TextView
-            android:id="@+id/currentSpeed"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text='@{currentSpeedViewModel.currentSpeed.toString() + " km/h"}'
-            android:textSize="30sp"
-            android:textColor="@color/text_yellow"
-            android:layout_below="@id/speedLimitTrafficSignImage"
-            android:layout_alignParentRight="true"
-            android:layout_marginTop="10dp"
-            android:visibility="gone"
-            /-->
 
     </RelativeLayout>
 </layout>

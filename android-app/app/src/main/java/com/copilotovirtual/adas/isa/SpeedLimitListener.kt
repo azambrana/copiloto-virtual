@@ -15,6 +15,19 @@ interface SpeedLimitListener {
      * @param trafficSign La señal de límite de velocidad detectada.
      */
     fun onSpeedLimitDetected(trafficSign: TrafficSign)
+
+    /**
+     * Notifica que se ha excedido el límite de velocidad.
+     */
     fun onSpeedLimitExceeded()
+
+    /**
+     * Notifica que se ha cambiado la velocidad del vehículo.
+     */
     fun onSpeedChanged(speed: Int)
+
+    /**
+     * Notifica que se ha restablecido el límite de velocidad.
+     */
+    fun onResetSpeedLimit(speed: Int)
 }

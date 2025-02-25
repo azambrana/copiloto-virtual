@@ -63,6 +63,7 @@ private const val ACCEPTABLE_CONFIDENCE = 0.5
  * @version 0.4
  */
 class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
+    private val showOverlay: Boolean = false
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -101,7 +102,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
         cameraExecutor.execute {
             // yoloDetector = YOLOv10Detector(requireContext(), MODEL_PATH_YOLOv10, LABELS_PATH, this)
-            trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = DetectorType.YOLOv10, this)
+            trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = DetectorType.YOLOv11, this)
             intelligentSpeedAssistanceService  = IntelligentSpeedAssistanceServiceImpl(requireContext(), this)
         }
 
@@ -338,7 +339,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         val boundingBoxes = trafficSigns.map { it.position }.filterNotNull()
 
         val currentTimestamp = System.currentTimeMillis()
-        updateOverlay(boundingBoxes)
+        if (showOverlay)        updateOverlay(boundingBoxes)
 
         if (trafficSigns.isEmpty()) return
 
@@ -384,6 +385,10 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     }
 
     override fun onSpeedChanged(speed: Int) {
+        currentSpeedViewModel.updateCurrentSpeed(speed)
+    }
+
+    override fun onResetSpeedLimit(speed: Int) {
         currentSpeedViewModel.updateCurrentSpeed(speed)
     }
 }

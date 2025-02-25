@@ -11,12 +11,17 @@ object Constants {
     /**
      * Ruta del modelo de detección de señales de tráfico YOLOv8.
      */
-    const val MODEL_PATH_YOLOv8 = "YOLOv8_cbba_best_float16.tflite"
+    const val MODEL_PATH_YOLOv8 = "YOLOv8_cbba_best_float32.tflite"
 
     /**
-     * Ruta del modelo de detección de señales de tráfico YOLOv10..
+     * Ruta del modelo de detección de señales de tráfico YOLOv10.
      */
-    const val MODEL_PATH_YOLOv10 = "YOLOv10_cbba_best_float16.tflite"
+    const val MODEL_PATH_YOLOv10 = "YOLOv10_cbba_best_float32.tflite"
+
+    /**
+     * Ruta del modelo de detección de señales de tráfico YOLOv11.
+     */
+    const val MODEL_PATH_YOLOv11 = "YOLOv11_cbba_best_float32.tflite"
 
     /**
      * Ruta del archivo de etiquetas.

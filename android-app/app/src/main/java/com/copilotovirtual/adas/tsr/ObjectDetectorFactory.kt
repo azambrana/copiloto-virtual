@@ -3,6 +3,7 @@ package com.copilotovirtual.adas.tsr
 import android.content.Context
 import com.copilotovirtual.adas.Constants
 import com.copilotovirtual.adas.tsr.yolo.YOLOv10Detector
+import com.copilotovirtual.adas.tsr.yolo.YOLOv11Detector
 import com.copilotovirtual.adas.tsr.yolo.YOLOv8Detector
 
 /**
@@ -30,8 +31,27 @@ object ObjectDetectorFactory {
         return when (detectorType) {
             DetectorType.YOLOv8 -> createYOLOv8Detector(context, detectorListener)
             DetectorType.YOLOv10 -> createYOLOv10Detector(context, detectorListener)
-            DetectorType.YOLOv11 -> TODO("Not yet implemented")
+            DetectorType.YOLOv11 -> createYOLOv11Detector(context, detectorListener)
         }
+    }
+
+    /**
+     * Crea un detector YOLOv11.
+     *
+     * @param context Contexto de la aplicación.
+     * @param detectorListener Listener para notificar los resultados de la detección.
+     * @return Un detector YOLOv10.
+     */
+    private fun createYOLOv11Detector(
+        context: Context,
+        detectorListener: DetectorListener
+    ): ObjectDetector {
+        return YOLOv11Detector(
+            modelPath = Constants.MODEL_PATH_YOLOv11,
+            labelPath = Constants.LABELS_PATH,
+            context = context,
+            detectorListener = detectorListener
+        )
     }
 
     /**
