@@ -112,7 +112,7 @@ open class YOLOv8Detector(
     }
 
     companion object {
-        private const val CONFIDENCE_THRESHOLD = 0.3F
+        private const val CONFIDENCE_THRESHOLD = 0.5F
         private const val IOU_THRESHOLD = 0.5F
     }
 }

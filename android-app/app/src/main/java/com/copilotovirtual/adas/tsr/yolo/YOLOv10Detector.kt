@@ -39,6 +39,6 @@ class YOLOv10Detector(
     }
 
     companion object {
-        private const val CONFIDENCE_THRESHOLD = 0.3F
+        private const val CONFIDENCE_THRESHOLD = 0.5F
     }
 }
