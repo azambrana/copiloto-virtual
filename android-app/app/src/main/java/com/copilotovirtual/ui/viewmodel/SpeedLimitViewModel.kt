@@ -3,6 +3,8 @@ package com.copilotovirtual.ui.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.copilotovirtual.adas.isa.DEFAULT_SPEED_LIMIT
+import com.copilotovirtual.adas.isa.SPEED_LIMIT_PREFFIX
 import com.copilotovirtual.data.model.TrafficSign
 
 /**
@@ -18,7 +20,7 @@ class SpeedLimitViewModel : ViewModel() {
 
     // set default speed limit sign
     init {
-        _detectedSpeedSign.value = TrafficSign("limite-velocidad-40", 0.7f, null)
+        _detectedSpeedSign.value = TrafficSign(SPEED_LIMIT_PREFFIX + DEFAULT_SPEED_LIMIT, 1f, null)
     }
 
     /**

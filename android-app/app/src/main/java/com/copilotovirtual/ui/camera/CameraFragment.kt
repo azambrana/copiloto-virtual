@@ -23,6 +23,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import com.copilotovirtual.adas.isa.DEFAULT_SPEED_LIMIT
 import com.copilotovirtual.adas.isa.IntelligentSpeedAssistanceService
 import com.copilotovirtual.adas.isa.IntelligentSpeedAssistanceServiceImpl
 import com.copilotovirtual.adas.isa.SPEED_LIMIT_PREFFIX
@@ -50,10 +51,6 @@ import com.copilotovirtual.utils.CSVLogger
 import com.copilotovirtual.utils.SoundPlayer
 
 private const val DELAY_DETECTION_SECONDS = 5000
-
-
-private const val MIN_SPEED_LIMIT = 10
-
 private const val ACCEPTABLE_CONFIDENCE = 0.5
 
 /**
@@ -77,6 +74,8 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     private lateinit var csvLogger: CSVLogger
     private lateinit var soundPlayer: SoundPlayer
 
+    private val detectorType: DetectorType = DetectorType.YOLOv11
+
     private lateinit var trafficSignRecognizerService: TrafficSignRecognizerService
     private lateinit var intelligentSpeedAssistanceService: IntelligentSpeedAssistanceService
 
@@ -87,7 +86,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentCameraBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.currentSpeedViewModel = currentSpeedViewModel // Bind third ViewModel
+        binding.currentSpeedViewModel = currentSpeedViewModel
         return binding.root
     }
 
@@ -101,8 +100,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         cameraExecutor.execute {
-            // yoloDetector = YOLOv10Detector(requireContext(), MODEL_PATH_YOLOv10, LABELS_PATH, this)
-            trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = DetectorType.YOLOv11, this)
+            trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = detectorType, this)
             intelligentSpeedAssistanceService  = IntelligentSpeedAssistanceServiceImpl(requireContext(), this)
         }
 
@@ -112,18 +110,15 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
             ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        // trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = DetectorType.YOLOv10)
         soundPlayer = SoundPlayer(requireContext())
 
         createCSVFile()
 
-        val defaultSpeedLimitDetectedSign = TrafficSign(
-            type = "limite-velocidad-40",
-            confidence = 1f,
-            position = null
-        )
+        resetSpeedLimit()
+    }
 
-        speedLimitViewModel.updateSpeedLimitSign(defaultSpeedLimitDetectedSign)
+    private fun resetSpeedLimit() {
+        onResetSpeedLimit(DEFAULT_SPEED_LIMIT)
     }
 
     /**
@@ -187,9 +182,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
                 matrix, true
             )
 
-            // yoloDetector?.detect(rotatedBitmap)
-            val tsrResults = trafficSignRecognizerService.processFrame(rotatedBitmap)
-            // processTSRResults(tsrResults)
+            trafficSignRecognizerService.processFrame(rotatedBitmap)
         }
 
         cameraProvider.unbindAll()
@@ -226,7 +219,6 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        // yoloDetector?.close()
         cameraExecutor.shutdown()
         soundPlayer.release()
     }
@@ -246,30 +238,6 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         private val REQUIRED_PERMISSIONS = mutableListOf (
             Manifest.permission.CAMERA
         ).toTypedArray()
-    }
-
-    private fun checkSpeedLimit(best: TrafficSign) {
-        var detectedSpeedLimitSign: TrafficSign? = null
-        val clsName = best.position?.clsName ?: ""
-        val isAcceptable = acceptableConfidence(best.position?.cnf?:0f)
-
-        if (!isAcceptable) return
-
-        if (best.type.startsWith(SPEED_LIMIT_PREFFIX)) {
-            detectedSpeedLimitSign = best
-        }
-
-        if (best.type.startsWith("zona-escolar")) {
-            detectedSpeedLimitSign = TrafficSign(
-                type = "limite-velocidad-10",
-                confidence = 1f,
-                position = null
-            )
-        }
-
-        if ( detectedSpeedLimitSign != null) {
-            onSpeedLimitDetected(detectedSpeedLimitSign)
-        }
     }
 
     private fun toast(message: String) {
@@ -316,7 +284,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         val boundingBoxes = trafficSigns.map { it.position }.filterNotNull()
 
         val currentTimestamp = System.currentTimeMillis()
-        if (showOverlay)        updateOverlay(boundingBoxes)
+        if (showOverlay) updateOverlay(boundingBoxes)
 
         if (trafficSigns.isEmpty()) return
 
@@ -326,9 +294,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
         val best = bestTrafficSign.position
 
-        if (best != null && currentTimestamp - previousTimestamp > DELAY_DETECTION_SECONDS) {
-            if (!acceptableConfidence(best.cnf)) return
-
+        if (best != null && acceptableConfidence(best.cnf) && currentTimestamp - previousTimestamp > DELAY_DETECTION_SECONDS) {
             previousClassName = best.clsName
             previousTimestamp = currentTimestamp
             soundPlayer.playSound(best.clsName)
@@ -353,7 +319,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     }
 
     override fun onSpeedLimitDetected(detectedSpeedLimitSign: TrafficSign) {
-        this.speedLimitViewModel.updateSpeedLimitSign(detectedSpeedLimitSign)
+        speedLimitViewModel.updateSpeedLimitSign(detectedSpeedLimitSign)
         SpeedLimitState.currentSpeedLimit = detectedSpeedLimitSign.type.substringAfter(SPEED_LIMIT_PREFFIX).toInt()
     }
 
@@ -362,10 +328,16 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     }
 
     override fun onSpeedChanged(speed: Int) {
+        SpeedState.currentSpeed = speed
         currentSpeedViewModel.updateCurrentSpeed(speed)
     }
 
     override fun onResetSpeedLimit(speed: Int) {
-        currentSpeedViewModel.updateCurrentSpeed(speed)
+        val speedLimitTrafficSign = TrafficSign(
+            type = SPEED_LIMIT_PREFFIX + speed,
+            confidence = 1f,
+            position = null
+        )
+        onSpeedLimitDetected(speedLimitTrafficSign)
     }
 }

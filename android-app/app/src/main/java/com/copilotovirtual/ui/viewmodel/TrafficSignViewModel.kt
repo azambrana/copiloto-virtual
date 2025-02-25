@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
  * @since 0.4
  */
 class TrafficSignViewModel : ViewModel() {
-    private val _detectedTrafficSign = MutableLiveData<TrafficSign?>() // Nullable to handle no detection
+    private val _detectedTrafficSign = MutableLiveData<TrafficSign?>()
     val detectedTrafficSign: LiveData<TrafficSign?> get() = _detectedTrafficSign
 
     /**
@@ -24,13 +24,13 @@ class TrafficSignViewModel : ViewModel() {
      * @param sign La señal de tráfico detectada.
      */
     fun updateTrafficSign(sign: TrafficSign?) {
-        _detectedTrafficSign.postValue(sign) // Use postValue() to trigger UI updates
+        _detectedTrafficSign.postValue(sign)
 
-        // Automatically hide the traffic sign after 5 seconds
+        // Ocultar la señal de tráfico después de 5 segundos
         if (sign != null) {
             viewModelScope.launch {
-                delay(5000) // Wait for 5 seconds
-                _detectedTrafficSign.postValue(null) // Hide the traffic sign
+                delay(5000)
+                _detectedTrafficSign.postValue(null)
             }
         }
     }

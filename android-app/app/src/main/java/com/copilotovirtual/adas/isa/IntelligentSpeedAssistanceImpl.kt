@@ -21,7 +21,6 @@ class IntelligentSpeedAssistanceImpl
     speedLimitListener: SpeedLimitListener
 ) : IntelligentSpeedAssistance(context, speedLimitListener) {
     private var lastLocation: Location = Location("")
-    private var speedLimit: Int
     private var gpsManager: GPSManager
     private val loopInterval: Long = 2000L
     private var soundPlayer: SoundPlayer
@@ -32,16 +31,15 @@ class IntelligentSpeedAssistanceImpl
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     init {
-        speedLimit = DEFAULT_SPEED_LIMIT
         soundPlayer = SoundPlayer(context)
-        // Initialize utilities
         gpsManager = GPSManager(context, ::onLocationReceived)
     }
 
     private fun startAsyncLoop() {
         isLoopRunning = true
-        var checkSpeedLimitExceeded = false
+        var checkSpeedLimitExceeded = true
         var distanceWhenSpeedLimitExceeded = 0f
+
         coroutineScope.launch {
             while (isLoopRunning) {
                 Log.d(
@@ -50,26 +48,23 @@ class IntelligentSpeedAssistanceImpl
                             "SpeedLimit: ${SpeedLimitState.currentSpeedLimit}, Distance: ${DistanceState.totalDistance}"
                 )
 
-                if (!checkSpeedLimitExceeded &&
+                if (checkSpeedLimitExceeded &&
                     isSpeedLimitExceeded(SpeedState.currentSpeed, SpeedLimitState.currentSpeedLimit)) {
-                    checkSpeedLimitExceeded = true
+                    checkSpeedLimitExceeded = false
                     distanceWhenSpeedLimitExceeded = DistanceState.totalDistance
                     speedLimitListener.onSpeedLimitExceeded()
 
                     val message =
                         "Exceso de velocidad: ${SpeedState.currentSpeed} km/h, " +
                                 "Límite: ${SpeedLimitState.currentSpeedLimit} km/h"
-                    // toast(message)
                     Log.d("ISA Loop", message)
 
                     soundPlayer.playSound(EXCESO_VELOCIDAD)
-
-                    SpeedLimitState.currentSpeedLimit = speedLimit
                 }
 
                 // mantener el límite dentro de los siguientes 100 metros (1 cuadra approx.)
-                if (checkSpeedLimitExceeded && DistanceState.totalDistance - distanceWhenSpeedLimitExceeded > 100) {
-                    checkSpeedLimitExceeded = false
+                if (!checkSpeedLimitExceeded && DistanceState.totalDistance - distanceWhenSpeedLimitExceeded > 100) {
+                    checkSpeedLimitExceeded = true
                     resetSpeedLimit()
                 }
 
@@ -88,7 +83,7 @@ class IntelligentSpeedAssistanceImpl
         val speed = location.speed * 3.6f // Convert to km/h
 
         var distance = 0f
-        lastLocation.let {
+        lastLocation?.let {
             distance = it.distanceTo(location)
             DistanceState.totalDistance += distance
         }
@@ -113,12 +108,7 @@ class IntelligentSpeedAssistanceImpl
         startAsyncLoop()
     }
 
-    override fun getLastSpeedLimit(): Int? {
-        return currentSpeedLimit
-    }
-
     override fun resetSpeedLimit() {
-        currentSpeedLimit = DEFAULT_SPEED_LIMIT
-        SpeedLimitState.currentSpeedLimit = DEFAULT_SPEED_LIMIT
+        speedLimitListener.onResetSpeedLimit(DEFAULT_SPEED_LIMIT)
     }
 }

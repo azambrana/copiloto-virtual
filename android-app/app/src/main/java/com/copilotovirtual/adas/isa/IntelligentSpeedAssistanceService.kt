@@ -6,6 +6,15 @@ import com.copilotovirtual.data.model.TrafficSign
 const val DEFAULT_SPEED_LIMIT = 40
 const val SPEED_LIMIT_PREFFIX = "limite-velocidad-"
 
+/**
+ * Interface para el Asistente de Velocidad Inteligente (ISA).
+ *
+ * El ISA procesa las señales de límite de velocidad detectadas y las compara con la velocidad
+ * actual estimada del vehículo.
+ *
+ * @author Alvaro Zambrana Sejas
+ * @version 0.4
+ */
 abstract class IntelligentSpeedAssistanceService (
     protected var context: Context,
     protected val speedLimitListener: SpeedLimitListener

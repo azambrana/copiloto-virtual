@@ -1,7 +1,6 @@
 package com.copilotovirtual.adas.isa
 
 import android.content.Context
-import com.copilotovirtual.data.model.TrafficSign
 
 /**
  * Interface para el Asistente de Velocidad Inteligente (ISA).
@@ -22,13 +21,7 @@ abstract class IntelligentSpeedAssistance (
     abstract fun start()
 
     /**
-     * Retrieves the last speed limit detected by the system.
-     * @return The last detected speed limit in km/h, or null if none detected.
-     */
-    abstract fun getLastSpeedLimit(): Int?
-
-    /**
-     * Clears the last detected speed limit.
+     * Reinicia el límite de velocidad detectado.
      */
     abstract fun resetSpeedLimit()
 
