@@ -1,5 +1,6 @@
 package com.copilotovirtual.adas.isa
 
+import android.content.Context
 import com.copilotovirtual.data.model.TrafficSign
 
 /**
@@ -12,14 +13,13 @@ import com.copilotovirtual.data.model.TrafficSign
  * @version 0.4
  */
 abstract class IntelligentSpeedAssistance (
-    private val speedLimitListener: SpeedLimitListener
+    protected val context: Context,
+    protected val speedLimitListener: SpeedLimitListener
 ) {
     /**
-     * Procesa la señal de límite de velocidad detectada y la compara con la velocidad actual del vehículo.
-     * @param detectedSign Señal de límite de velocidad detectada, o null si no hay ninguna.
-     * @param currentSpeed Velocidad actual del vehículo en km/h.
+     * Inicia el ISA.
      */
-    abstract fun processSpeedLimit(detectedSign: TrafficSign?, currentSpeed: Float)
+    abstract fun start()
 
     /**
      * Retrieves the last speed limit detected by the system.
@@ -31,4 +31,12 @@ abstract class IntelligentSpeedAssistance (
      * Clears the last detected speed limit.
      */
     abstract fun resetSpeedLimit()
+
+    /**
+     * Procesa la señal de límite de velocidad detectada y la compara con la velocidad actual del vehículo.
+     * @param currentSpeed  Velocidad actual del vehículo en km/h.
+     * @param speedLimit Velocidad límite detectada en km/h.
+     */
+    abstract fun isSpeedLimitExceeded(currentSpeed: Int, speedLimit: Int): Boolean
+
 }

@@ -25,6 +25,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.copilotovirtual.adas.isa.IntelligentSpeedAssistanceService
 import com.copilotovirtual.adas.isa.IntelligentSpeedAssistanceServiceImpl
+import com.copilotovirtual.adas.isa.SPEED_LIMIT_PREFFIX
 import com.copilotovirtual.adas.isa.SpeedLimitListener
 import com.copilotovirtual.adas.tsr.TrafficSignRecognizerService
 import com.copilotovirtual.adas.tsr.DetectorType
@@ -50,7 +51,6 @@ import com.copilotovirtual.utils.SoundPlayer
 
 private const val DELAY_DETECTION_SECONDS = 5000
 
-private const val SPEED_LIMIT_PREFFIX = "limite-velocidad-"
 
 private const val MIN_SPEED_LIMIT = 10
 
@@ -290,29 +290,6 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         )
     }
 
-    /**
-     * Registra los datos de las detecciones en el archivo CSV.
-     */
-    private fun logBestDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, best: BoundingBox?, inferenceTime: Long) {
-        try {
-            for (bbox in boundingBoxes) {
-                val isAcceptable = acceptableConfidence(bbox.cnf)
-                val sound = if (isAcceptable) "1" else "0"
-                val clsName = bbox.clsName
-
-                if (isAcceptable && clsName.startsWith(SPEED_LIMIT_PREFFIX)) {
-                    SpeedLimitState.currentSpeedLimit = clsName.substringAfter(SPEED_LIMIT_PREFFIX).toInt()
-                } else if (isAcceptable && clsName.startsWith("zona-escolar")) {
-                    SpeedLimitState.currentSpeedLimit = MIN_SPEED_LIMIT
-                }
-
-                csvLogger.logRowData(timestamp, LocationState.latitude, LocationState.longitude, SpeedState.currentSpeed, clsName, bbox.cnf, sound, inferenceTime)
-            }
-        } catch (e: IOException) {
-            Log.e("CSVError", "Error de escritura en el archivo CSV ${csvLogger.getCSVFileName()}", e)
-        }
-    }
-
     private fun logDetectedBoundingBoxes(boundingBoxes: List<BoundingBox>, timestamp: Long, inferenceTime: Long) {
         try {
             for (bbox in boundingBoxes) {
@@ -360,7 +337,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
             this.trafficSignViewModel.updateTrafficSign(bestTrafficSign)
 
-            checkSpeedLimit(bestTrafficSign)
+            intelligentSpeedAssistanceService.processSpeedLimitTrafficSign(bestTrafficSign)
 
             logDetectedBoundingBoxes(boundingBoxes, currentTimestamp, trafficSignRecognizerResults.inferenceTime)
         }
