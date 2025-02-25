@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("androidx.navigation.safeargs.kotlin")
+    id("kotlin-kapt")
 }
 
 android {
@@ -28,15 +29,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "21"
     }
 
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
     buildToolsVersion = "35.0.0"
 }
@@ -50,8 +52,20 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.play.services.tasks)
+    implementation(libs.core.ktx)
+    implementation(libs.androidx.legacy.support.v4)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.fragment.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.inline)
+    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("androidx.test:core:1.5.0")
+
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation(libs.androidx.navigation.fragment.ktx)
@@ -59,20 +73,20 @@ dependencies {
 
 
     val cameraxVersion = "1.4.1"
+    val tensorflowLiteVersion = "2.17.0"
     implementation("androidx.camera:camera-camera2:${cameraxVersion}")
     implementation("androidx.camera:camera-lifecycle:${cameraxVersion}")
     implementation("androidx.camera:camera-view:${cameraxVersion}")
 
-    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite:${tensorflowLiteVersion}")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
     implementation("org.tensorflow:tensorflow-lite-metadata:0.4.4")
 
     implementation("org.tensorflow:tensorflow-lite-gpu-delegate-plugin:0.4.4")
-    implementation("org.tensorflow:tensorflow-lite-gpu-api:2.16.1")
-    implementation("org.tensorflow:tensorflow-lite-api:2.16.1")
-    implementation("org.tensorflow:tensorflow-lite-gpu:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-gpu-api:${tensorflowLiteVersion}")
+    implementation("org.tensorflow:tensorflow-lite-api:${tensorflowLiteVersion}")
+    implementation("org.tensorflow:tensorflow-lite-gpu:${tensorflowLiteVersion}")
     implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
 
-    // Other dependencies
     implementation("com.google.android.gms:play-services-location:21.0.1")
 }

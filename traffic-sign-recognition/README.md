@@ -1,8 +1,17 @@
+Proyecto Python que contiene scripts y notebooks para procesamiento, aumento de datos, entrenamiento, pruebas de inferencia, etc.
+
+Para el *Diplomado Estadística Aplicada a la Toma de Decisiones - Tercera Versión - UMSS*
+
+El proyecto puede ser abierto con PyCharm o cualquier IDE que soporte Python.
 
 # Requirements:
 
+## Software
+- Windows 11
 - Anaconda3
-- Python 3.10 
+
+## Hardware
+- Una tarjeta gráfica RTX para el ajuste fino
 
 # Configurar:
 
@@ -11,7 +20,7 @@ conda create -n copiloto-virtual python=3.10
 conda activate copiloto-virtual
 ```
 
-### 1. Download the code and install the required packages
+### 1. Instalar las dependencias para los notebooks
 
 ```
 pip install ffmpeg-python
@@ -20,12 +29,13 @@ pip install piexif
 pip install pillow
 pip install jupyter jupyterlab
 
-# OR
+# O simplemente
 
 pip install ffmpeg-python opencv-python piexif pillow jupyter jupyterlab
 
 ```
 
+Nota: Cada notebooks contiene los comandos suficientes para ejecularlo, incluyendo sus dependencias.
 
 ## GPU
 
@@ -38,19 +48,24 @@ Nota: Incluso teniendo CUDA v12.6, no se puede instalar la versión de torchvisi
 
 ## YOLO
 
-```
-!pip install -q git+https://github.com/THU-MIG/yolov10.git
-!pip install huggingface_hub
+Para la instalación de YOLO, revisar los notebooks correspondientes a cada versión
+
+* local-train_yolov8_object_detection_on_custom_dataset_with_augmented_data.ipynb
+* local-train_yolov10_object_detection_on_custom_dataset_with_augmented_data.ipynb
+* local-train_yolov11_object_detection_on_custom_dataset_with_augmented_data.ipynb
+
+Nota: Desinstalar cualquier versión de Ultralytics differente
 
 ```
+pip uninstall ultralytics supervision
+```
 
-## Windows
+## Troubleshooting
 
-### Re-crear el entorno con conda
+### Recrear el entorno con conda
 
 ```
 conda env list
 conda deactivate
 conda remove --name copiloto-virtual --all
 ```
-## Linux

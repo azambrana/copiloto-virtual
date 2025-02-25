@@ -1,0 +1,38 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.copilotovirtual.ui.viewmodel.TrafficSignViewModel" />
+        <variable
+            name="speedLimitViewModel"
+            type="com.copilotovirtual.ui.viewmodel.SpeedLimitViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Traffic Sign Icon -->
+        <ImageView
+            android:id="@+id/trafficSignImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:trafficSignVisibility="@{viewModel.detectedTrafficSign}"
+            app:trafficSignImage="@{viewModel.detectedTrafficSign}"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true" />
+
+        <!-- Speed Limit Traffic Sign Icon -->
+        <ImageView
+            android:id="@+id/speedLimitTrafficSignImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            app:trafficSignVisibility="@{speedLimitViewModel.detectedSpeedSign}"
+            app:trafficSignImage="@{speedLimitViewModel.detectedSpeedSign}"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true" />
+
+    </RelativeLayout>
+</layout>
