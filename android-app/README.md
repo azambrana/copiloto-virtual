@@ -1,6 +1,6 @@
 # Proyecto para Android Studio - Copiloto Virtual para la asistencia de conductores basado en visión artificial y Edge AI en Android
 
-*Diplomado Estadística Aplicada a la Toma de Decisiones - Tercera Versión*
+Para el *Diplomado Estadística Aplicada a la Toma de Decisiones - Tercera Versión - UMSS*
  
 **Autor:** Alvaro Zambrana Sejas
 
