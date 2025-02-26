@@ -8,6 +8,9 @@ import com.copilotovirtual.data.model.FullBoundingBox
 /**
  * Clase Detector para realizar la detección de objetos en un frame de video utilizando un modelo de
  * TensorFlow Lite generado con el framework YOLOv18.
+ *
+ * @author Alvaro Zambrana Sejas
+ * @since 0.4
  */
 open class YOLOv8Detector(
     context: Context,

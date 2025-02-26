@@ -16,6 +16,18 @@ import org.tensorflow.lite.support.image.ImageProcessor
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 
+/**
+ * Clase abstracta Detector para realizar la detección de objetos en un frame de video utilizando un modelo de TensorFlow Lite.
+ * Esta clase es la base para implementar un detector de objetos con un modelo de TensorFlow Lite.
+ *
+ * @param context Contexto de la aplicación.
+ * @param modelPath Ruta del archivo del modelo TensorFlow Lite.
+ * @param labelPath Ruta del archivo de las etiquetas del modelo.
+ * @param detectorListener Listener para notificar los resultados de la detección.
+ *
+ * @author Alvaro Zambrana Sejas
+ * @since 0.4
+ */
 abstract class YOLODetector (
     val context: Context,
     val modelPath: String,
