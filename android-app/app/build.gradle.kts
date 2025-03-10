@@ -10,7 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.copilotovirtual"
+        applicationId = "com.copilotovirtual.yolov11"
         minSdk = 28
         targetSdk = 34
         versionCode = 1

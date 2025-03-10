@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -16,7 +15,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
 
     private var results = listOf<BoundingBox>()
     private var boxPaint = Paint()
-    private var textBackgroundPaint = Paint()
     private var textPaint = Paint()
 
     private var bounds = Rect()
@@ -28,22 +26,17 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
     fun clear() {
         results = listOf()
         textPaint.reset()
-        textBackgroundPaint.reset()
         boxPaint.reset()
         invalidate()
         initPaints()
     }
 
     private fun initPaints() {
-        textBackgroundPaint.color = Color.WHITE
-        textBackgroundPaint.style = Paint.Style.FILL
-        textBackgroundPaint.textSize = 36f
-
-        textPaint.color = Color.BLACK
+        textPaint.color = Color.GREEN
         textPaint.style = Paint.Style.FILL
         textPaint.textSize = 36f
 
-        boxPaint.color = ContextCompat.getColor(context!!, R.color.white)
+        boxPaint.color = ContextCompat.getColor(context!!, R.color.text_green)
         boxPaint.strokeWidth = 6F
         boxPaint.style = Paint.Style.STROKE
     }
@@ -52,38 +45,20 @@ class OverlayView(context: Context?, attrs: AttributeSet?) : View(context, attrs
         super.draw(canvas)
 
         results.forEach {
-
             val left = it.x1 * width
             val top = it.y1 * height
             val right = it.x2 * width
             val bottom = it.y2 * height
 
-            canvas.drawRoundRect(left, top, right, bottom, 16f, 16f, boxPaint)
+            canvas.drawRect(left, top, right, bottom, boxPaint)
+
             val drawableText = "${it.clsName} ${Math.round(it.cnf * 100.0) / 100.0}"
-
-            textBackgroundPaint.getTextBounds(drawableText, 0, drawableText.length, bounds)
-            val textWidth = bounds.width()
-            val textHeight = bounds.height()
-
-            val textBackgroundRect = RectF(
-                left,
-                top,
-                left + textWidth + BOUNDING_RECT_TEXT_PADDING,
-                top + textHeight + BOUNDING_RECT_TEXT_PADDING
-            )
-            canvas.drawRoundRect(textBackgroundRect, 8f, 8f, textBackgroundPaint)
-
-            canvas.drawText(drawableText, left, top + textHeight, textPaint)
-
+            canvas.drawText(drawableText, left, top - bounds.height(), textPaint)
         }
     }
 
     fun setResults(boundingBoxes: List<BoundingBox>) {
         results = boundingBoxes
         invalidate()
-    }
-
-    companion object {
-        private const val BOUNDING_RECT_TEXT_PADDING = 8
     }
 }

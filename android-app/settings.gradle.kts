@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Copiloto Virtual"
+rootProject.name = "Copiloto Virtual YOLO11"
 include(":app")
  

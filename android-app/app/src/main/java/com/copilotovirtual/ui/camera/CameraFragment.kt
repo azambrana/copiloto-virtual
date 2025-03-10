@@ -18,7 +18,6 @@ import androidx.camera.core.Preview
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -45,13 +44,12 @@ import com.copilotovirtual.ui.viewmodel.TrafficSignViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.IOException
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import com.copilotovirtual.utils.CSVLogger
 import com.copilotovirtual.utils.SoundPlayer
 
 private const val DELAY_DETECTION_SECONDS = 5000
-private const val ACCEPTABLE_CONFIDENCE = 0.5
+private const val ACCEPTABLE_CONFIDENCE = 0.7
 
 /**
  * Fragmento que muestra la cámara y detecta objetos en tiempo real.
@@ -60,7 +58,7 @@ private const val ACCEPTABLE_CONFIDENCE = 0.5
  * @version 0.4
  */
 class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
-    private val showOverlay: Boolean = false
+    private val showOverlay: Boolean = true
     private var _binding: FragmentCameraBinding? = null
     private val binding get() = _binding!!
 
@@ -68,12 +66,11 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
     private var cameraProvider: ProcessCameraProvider? = null
-    private lateinit var cameraExecutor: ExecutorService
+    private var cameraExecutor = Executors.newSingleThreadExecutor()
     private var previousClassName = ""
     private var previousTimestamp = 0L
     private lateinit var csvLogger: CSVLogger
     private lateinit var soundPlayer: SoundPlayer
-
     private val detectorType: DetectorType = DetectorType.YOLOv11
 
     private lateinit var trafficSignRecognizerService: TrafficSignRecognizerService
@@ -97,24 +94,33 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        cameraExecutor = Executors.newSingleThreadExecutor()
 
-        cameraExecutor.execute {
-            trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = detectorType, this)
-            intelligentSpeedAssistanceService  = IntelligentSpeedAssistanceServiceImpl(requireContext(), this)
-        }
-
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
-            ActivityCompat.requestPermissions(requireActivity(), REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
-        }
+        checkCameraPermissionAndStart()
 
         soundPlayer = SoundPlayer(requireContext())
 
         createCSVFile()
 
         resetSpeedLimit()
+    }
+
+    private fun checkCameraPermissionAndStart() {
+        when {
+            allPermissionsGranted() -> {
+                startCamera()
+                cameraExecutor.execute {
+                    trafficSignRecognizerService = TrafficSignRecognizerServiceImpl(context = requireContext(), detectorType = detectorType, this)
+                    intelligentSpeedAssistanceService  = IntelligentSpeedAssistanceServiceImpl(requireContext(), this)
+                }
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
+                Toast.makeText(requireContext(), "Camera permission is needed to use the camera.", Toast.LENGTH_SHORT).show()
+                requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
+            }
+            else -> {
+                requestPermissionLauncher.launch(REQUIRED_PERMISSIONS)
+            }
+        }
     }
 
     private fun resetSpeedLimit() {
@@ -151,7 +157,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
             )
             .build()
 
-        preview =  Preview.Builder()
+        val preview = Preview.Builder()
             .setResolutionSelector(resolutionSelector)
             .setTargetRotation(rotation)
             .build()
@@ -159,7 +165,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         imageAnalyzer = ImageAnalysis.Builder()
             .setResolutionSelector(resolutionSelector)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setTargetRotation(binding.viewFinder.display.rotation)
+            .setTargetRotation(rotation)
             .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
             .build()
 
@@ -214,7 +220,11 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()) {
-        if (it[Manifest.permission.CAMERA] == true) { startCamera() }
+        if (it[Manifest.permission.CAMERA] == true) {
+            startCamera()
+        } else {
+            toast("Permiso para la cámara es requerido.")
+        }
     }
 
     override fun onDestroy() {
@@ -284,7 +294,8 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         val boundingBoxes = trafficSigns.map { it.position }.filterNotNull()
 
         val currentTimestamp = System.currentTimeMillis()
-        if (showOverlay) updateOverlay(boundingBoxes)
+
+        if (showOverlay) updateOverlay(emptyList())
 
         if (trafficSigns.isEmpty()) return
 
@@ -295,6 +306,8 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
         val best = bestTrafficSign.position
 
         if (best != null && acceptableConfidence(best.cnf) && currentTimestamp - previousTimestamp > DELAY_DETECTION_SECONDS) {
+            if (showOverlay) updateOverlay(listOf(best))
+
             previousClassName = best.clsName
             previousTimestamp = currentTimestamp
             soundPlayer.playSound(best.clsName)

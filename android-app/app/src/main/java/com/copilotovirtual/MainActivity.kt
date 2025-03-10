@@ -1,32 +1,21 @@
 package com.copilotovirtual
 
-import android.location.Location
 import android.os.Bundle
-import android.util.Log
-import android.view.WindowInsets
-import android.widget.TextView
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.copilotovirtual.databinding.ActivityMainBinding
-import com.copilotovirtual.data.model.DistanceState
-import com.copilotovirtual.data.model.LocationState
-import com.copilotovirtual.data.model.SpeedLimitState
-import com.copilotovirtual.data.model.SpeedState
 import com.copilotovirtual.utils.GPSManager
 import kotlinx.coroutines.*
-import com.copilotovirtual.utils.SoundPlayer
-import java.lang.Integer.parseInt
-import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,11 +26,33 @@ class MainActivity : AppCompatActivity() {
     private val LOCATION_PERMISSION_REQUEST_CODE = 1
 
     private var isLoopRunning = false
-    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    private val REQUIRED_PERMISSIONS = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.entries.all { it.value }) {
+            startAppFunctionality()
+        } else {
+            Toast.makeText(
+                this,
+                "Todos los permisos son requeridos para el correcto funcionamiento de la app.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+        ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startAppFunctionality() {
+        displayAuthor()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         enableEdgeToEdge()
@@ -57,6 +68,16 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        if (!allPermissionsGranted()) {
+            permissionLauncher.launch(REQUIRED_PERMISSIONS)
+        } else {
+            startAppFunctionality()
+        }
+    }
+
     private fun toast(message: String) {
         lifecycleScope.launch(Dispatchers.Main) {
             Toast.makeText(baseContext, message, Toast.LENGTH_LONG).show()
@@ -65,21 +86,25 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        gpsManager.stopLocationUpdates()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && gpsManager.checkPermissions()) {
             gpsManager.startLocationUpdates()
+            displayAuthor()
         } else {
-            Toast.makeText(this, "Location permission required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Permiso de Ubicación en requerido.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun displayAuthor() {
+        toast("Copiloto Virtual\nCochabamba, Bolivia")
+        toast("© Alvaro Zambrana Sejas, 2025")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         isLoopRunning = false // Detiene el loop cuando la actividad se destruye
-        coroutineScope.cancel() // Cancela coroutines activas
     }
 }
