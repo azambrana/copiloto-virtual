@@ -71,7 +71,7 @@ class CameraFragment : Fragment(), TrafficSignListener, SpeedLimitListener {
     private var previousTimestamp = 0L
     private lateinit var csvLogger: CSVLogger
     private lateinit var soundPlayer: SoundPlayer
-    private val detectorType: DetectorType = DetectorType.YOLOv11
+    private val detectorType: DetectorType = DetectorType.YOLOv10
 
     private lateinit var trafficSignRecognizerService: TrafficSignRecognizerService
     private lateinit var intelligentSpeedAssistanceService: IntelligentSpeedAssistanceService
