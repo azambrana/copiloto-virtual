@@ -79,6 +79,15 @@
                         android:textAlignment="viewEnd"
                         android:textColor="@color/text_yellow"
                         android:textSize="40sp" />
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="YOLOv10"
+                        android:textColor="@color/text_yellow"
+                        android:layout_centerHorizontal="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginBottom="10dp" />
                 </RelativeLayout>
 
                 <!-- Fragment for Traffic Sign -->
