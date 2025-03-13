@@ -37,3 +37,38 @@ Contiene los resultados del entrenamiento con las diferentes versiones de YOLO.
 
 * Carpeta traffic-sign-recognition
 Contiene el proyecto de ciencia de datos en Python con notebooks para crear los metadatos, entrenar los modelos con las 3 versiones de YOLO, realizar tareas ETL, etc.
+
+## Configurar el entorno de trabajo
+
+1. Descargar e instalar un cliente git para Windows
+
+https://git-scm.com/downloads/win
+
+```git config --global http.postBuffer 524288000
+```
+
+2. Clonar el repositorio en una carpeta de su eleccion
+
+```
+git clone https://github.com/azambrana/copiloto-virtual.git --depth 1
+
+```
+o
+```
+git clone git@github.com:azambrana/copiloto-virtual.git --depth 1
+```
+
+3. Cambiar de directorio de trabajo
+
+```
+cd copiloto-virtual/
+```
+
+
+4. Recuperar todo el historial de github
+
+```
+git fetch --unshallow
+```
+
+5. Leer el archivo README.md de cada sub-proyecto.

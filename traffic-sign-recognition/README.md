@@ -9,6 +9,8 @@ El proyecto puede ser abierto con PyCharm o cualquier IDE que soporte Python.
 ## Software
 - Windows 11
 - Anaconda3
+- PyCharm Professional
+- CUDA Toolkit 12.4 (Opcional)
 
 ## Hardware
 - Una tarjeta gráfica RTX para el ajuste fino
@@ -18,6 +20,10 @@ El proyecto puede ser abierto con PyCharm o cualquier IDE que soporte Python.
 ```
 conda create -n copiloto-virtual python=3.10
 conda activate copiloto-virtual
+```
+
+Configurar el IDE para usar el entorno virtual creado.
+
 ```
 
 ### 1. Instalar las dependencias para los notebooks
@@ -37,14 +43,21 @@ pip install ffmpeg-python opencv-python piexif pillow jupyter jupyterlab
 
 Nota: Cada notebooks contiene los comandos suficientes para ejecularlo, incluyendo sus dependencias.
 
-## GPU
+## GPU con CUDA, NVidia RTX
+
+Instalar el CUDA Toolkit de NVidia (Opcional): https://developer.nvidia.com/cuda-downloads
+
+Revisar https://pytorch.org/ para la última versión disponible.  En caso de tener una versión antigua, desinstalarlo.
 
 ```
 pip uninstall torchvision
-pip install torchvision --upgrade --extra-index-url https://download.pytorch.org/whl/cu124 
 ```
 
-Nota: Incluso teniendo CUDA v12.6, no se puede instalar la versión de torchvision que requiere CUDA v12.6, por lo que se debe instalar la versión de torchvision que requiere CUDA v12.4.
+Instalar la versión más reciente.
+
+```
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+```
 
 ## YOLO
 
@@ -69,3 +82,8 @@ conda env list
 conda deactivate
 conda remove --name copiloto-virtual --all
 ```
+
+### PyTorch + CUDA
+
+Problemas con torchvision o torh
+Instalar versiones antiguas torch==2.5.1 + CUDA 12.4, por ejemplo.

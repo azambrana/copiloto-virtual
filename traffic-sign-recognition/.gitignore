@@ -41,3 +41,23 @@ pip-delete-this-directory.txt
 .cache
 nosetests.xml
 coverage.xml
+
+# IntelliJ
+*.iml
+.idea/
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+# Kotlin
+/.kotlin
+# Mac OS
+.DS_Store
+/captures
+# External native build folder generated in Android Studio 2.2 and later
+.externalNativeBuild
+.cxx
+# log files
+*.log
