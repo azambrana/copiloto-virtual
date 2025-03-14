@@ -1,6 +1,6 @@
 description: Ultralytics best model trained on C:\Users\Alvaro\PycharmProjects\copiloto-virtual\traffic-sign-recognition/dataset/processed/yolo_signals_cbba_with_augmented_data/data.yaml
 author: Ultralytics
-date: '2025-03-13T08:56:51.356310'
+date: '2025-03-14T08:21:04.112025'
 version: 8.2.103
 license: AGPL-3.0 License (https://ultralytics.com/license)
 docs: https://docs.ultralytics.com
@@ -8,8 +8,8 @@ stride: 32
 task: detect
 batch: 1
 imgsz:
-- 1280
-- 1280
+- 640
+- 640
 names:
   0: zona-escolar
   1: pare
