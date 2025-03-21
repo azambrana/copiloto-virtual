@@ -93,8 +93,6 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && gpsManager.checkPermissions()) {
             gpsManager.startLocationUpdates()
             displayAuthor()
-        } else {
-            Toast.makeText(this, "Permiso de Ubicación en requerido.", Toast.LENGTH_SHORT).show()
         }
     }
 
