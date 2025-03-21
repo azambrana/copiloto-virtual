@@ -33,6 +33,7 @@ box Asistente de Velocidad Inteligente (ISA)
         GPS -> GPS: Actualizar Velocidad y Ubicacion
         GPS -> SpeedState: actualizar(velocidadActual)
         GPS -> LocationState:  actualizar(latitude, longitude)
+        GPS -> DistanceState:  actualizar(distancia)
     end
 end box
 

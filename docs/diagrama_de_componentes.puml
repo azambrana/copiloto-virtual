@@ -14,7 +14,7 @@ Container_Boundary(mobile_app, "Mobile App") {
     Component(tsr, "Detector de señales de tránsito", "Object", "Detecta señales de tránsito en la secuencia de imágenes capturadas con la cámara")
     Component(tflite, "TensorFlow Interpreter", "Object", "Interpretador de TensorFlow para realizar inferencia que carga el modelo en formato .tflite entrenado con YOLO")
     Component(gpsApi, "GPS API", "HTTPS", "API para obtener datos del GPS")
-    Component(logger, "FileWriter", "API", "API para almacenar registros CSV")
+    Component(logger, "CSVLogger", "API", "API para almacenar registros CSV")
     
     Rel(iu, cam, "Capturar imágenes", "")
     Rel(gps, gpsApi, "Obtener Datos GPS", "GPS")
@@ -23,6 +23,5 @@ Container_Boundary(mobile_app, "Mobile App") {
     Rel(tsr, logger, "Registrar Resultados de Inferencia")
     Rel(iu, isa, "Evaluar Velocidad")
     Rel(isa, logger, "Registrar Eventos")
-    Rel(iu, gpsApi, "Registrar Datos GPS")
-
+    Rel(isa, gpsApi, "Registrar Datos GPS")
 @enduml
